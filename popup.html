@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 280px;
+      background: #0f1117;
+      color: #f0f0f4;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+    }
+
+    /* ── Header ── */
+    .rl-header {
+      background: linear-gradient(135deg, #FF6B35 0%, #d94f1a 100%);
+      padding: 13px 15px 11px;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .rl-brand     { font-weight: 900; font-size: 16px; color: #fff; letter-spacing: -0.3px; }
+    .rl-sub       { font-size: 9px; font-weight: 500; text-transform: uppercase;
+                    letter-spacing: 0.7px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+    .rl-pill {
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+      margin-top: 2px; flex-shrink: 0;
+    }
+    .rl-pill-active   { background: rgba(74,222,128,0.2);  color: #4ade80; border: 1px solid rgba(74,222,128,0.35); }
+    .rl-pill-inactive { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.15); }
+
+    /* ── Status row (shown when key exists) ── */
+    #rl-key-status {
+      display: none;
+      align-items: center; justify-content: space-between;
+      padding: 11px 15px;
+      background: rgba(74,222,128,0.05);
+      border-bottom: 1px solid rgba(74,222,128,0.12);
+    }
+    .rl-key-label { font-size: 9px; font-weight: 700; text-transform: uppercase;
+                    letter-spacing: 0.7px; color: rgba(255,255,255,0.3); margin-bottom: 3px; }
+    .rl-key-val   { font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.55); }
+    .rl-key-check { font-size: 16px; color: #4ade80; }
+
+    /* ── Section ── */
+    .rl-section { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .rl-section-title {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: rgba(255,255,255,0.28); margin-bottom: 10px;
+    }
+
+    /* ── Input ── */
+    input[type="text"] {
+      width: 100%; padding: 8px 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      color: #f0f0f4; font-size: 12px; font-family: monospace;
+      outline: none; transition: border-color 0.2s;
+    }
+    input::placeholder { color: rgba(255,255,255,0.2); }
+    input:focus { border-color: rgba(255,107,53,0.7); background: rgba(255,255,255,0.08); }
+
+    /* ── Buttons ── */
+    .rl-btn-row { display: flex; gap: 7px; margin-top: 8px; }
+    .rl-btn-primary {
+      flex: 1; padding: 8px 0;
+      background: #FF6B35; color: #fff; border: none; border-radius: 7px;
+      font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .rl-btn-primary:hover { background: #e8521e; }
+    .rl-btn-ghost {
+      padding: 8px 11px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px; color: rgba(255,255,255,0.4);
+      font-size: 14px; cursor: pointer; transition: all 0.15s; line-height: 1;
+    }
+    .rl-btn-ghost:hover {
+      background: rgba(248,113,113,0.12);
+      color: #f87171; border-color: rgba(248,113,113,0.3);
+    }
+
+    /* ── Status message ── */
+    #rl-status {
+      font-size: 11px; margin-top: 8px; min-height: 14px; line-height: 1.4;
+      color: rgba(255,255,255,0.35);
+    }
+    #rl-status.ok  { color: #4ade80; }
+    #rl-status.err { color: #f87171; }
+
+    /* ── Info rows (like ABP / Dark Reader) ── */
+    .rl-row {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: default; transition: background 0.12s;
+      text-decoration: none; color: inherit;
+    }
+    .rl-row[href]:hover { background: rgba(255,255,255,0.04); cursor: pointer; }
+    .rl-row-icon  { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+    .rl-row-body  { flex: 1; min-width: 0; }
+    .rl-row-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); line-height: 1.3; }
+    .rl-row-sub   { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 1px; }
+    .rl-row-arrow { font-size: 16px; color: rgba(255,255,255,0.18); flex-shrink: 0; }
+
+    /* ── Footer ── */
+    .rl-footer {
+      padding: 9px 15px;
+      font-size: 9.5px; color: rgba(255,255,255,0.18);
+      text-align: center; letter-spacing: 0.3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="rl-header">
+    <div>
+      <div class="rl-brand">ReviewLens</div>
+      <div class="rl-sub">Product Truth Panel</div>
+    </div>
+    <div id="rl-pill" class="rl-pill rl-pill-inactive">No Key</div>
+  </div>
+
+  <!-- Key status (visible only when key saved) -->
+  <div id="rl-key-status">
+    <div>
+      <div class="rl-key-label">API Key</div>
+      <div class="rl-key-val" id="rl-key-masked">—</div>
+    </div>
+    <span class="rl-key-check">&#x2713;</span>
+  </div>
+
+  <!-- Key input section -->
+  <div class="rl-section">
+    <div class="rl-section-title">Gemini API Key</div>
+    <input type="text" id="gemini-key" placeholder="AIza..." spellcheck="false" autocomplete="off" />
+    <div class="rl-btn-row">
+      <button class="rl-btn-primary" id="save-btn">Save Key</button>
+      <button class="rl-btn-ghost"   id="clear-btn" title="Remove saved key">&#x2715;</button>
+    </div>
+    <div id="rl-status"></div>
+  </div>
+
+  <!-- Get free key -->
+  <a class="rl-row" href="https://aistudio.google.com/app/apikey" target="_blank">
+    <span class="rl-row-icon">&#x1F511;</span>
+    <div class="rl-row-body">
+      <div class="rl-row-title">Get Free API Key</div>
+      <div class="rl-row-sub">aistudio.google.com &mdash; no credit card</div>
+    </div>
+    <span class="rl-row-arrow">&#x203A;</span>
+  </a>
+
+  <!-- How it works -->
+  <div class="rl-row">
+    <span class="rl-row-icon">&#x26A1;</span>
+    <div class="rl-row-body">
+      <div class="rl-row-title">Works automatically</div>
+      <div class="rl-row-sub">Injects on every Amazon product page</div>
+    </div>
+  </div>
+
+  <!-- Model info -->
+  <div class="rl-row">
+    <span class="rl-row-icon">&#x1F9E0;</span>
+    <div class="rl-row-body">
+      <div class="rl-row-title">Gemini 2.5 Flash</div>
+      <div class="rl-row-sub">Analyzes up to 400 reviews per product</div>
+    </div>
+  </div>
+
+  <div class="rl-footer">ReviewLens v2.0 &bull; Gemini 2.5 Flash</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
