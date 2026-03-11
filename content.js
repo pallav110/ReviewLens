@@ -5,7 +5,7 @@
 'use strict';
 
 (function () {
-  const { Cache, LocalAnalysis, Scraper, UI } = window.RL;
+  const { Cache, LocalAnalysis, Scraper, UI, Compare } = window.RL;
 
   // ── Entry point ──────────────────────────────────────────────────────────────
   function init() {
@@ -35,10 +35,11 @@
     // 1. Check cache first
     const cached = await Cache.get(asin);
     if (cached) {
+      // Scrape metadata FIRST so showResults can display the official star rating
+      Scraper.scrapePageReviews();
       UI.showResults(cached.data, cached.reviewCount, cached.localSignals, Scraper);
       UI.injectInlineShowcase(cached.data, cached.localSignals);
-      // Still need metadata for the UI even from cache
-      Scraper.scrapePageReviews(); // populates starRating/totalRatings/starDist
+      setupCompare(asin, cached.data, cached.localSignals);
       return;
     }
 
@@ -50,24 +51,25 @@
     var extra = [];
     try { extra = await Scraper.fetchMoreReviews(asin); } catch (_) {}
 
-    var allReviews = Scraper.mergeReviews(pageReviews, extra, 80);
+    var allReviews = Scraper.mergeReviews(pageReviews, extra, 200);
     if (allReviews.length === 0) {
       UI.showError('No review text found. Scroll to the reviews section and try again.');
       return;
     }
 
-    // 3. Local analysis (instant, deterministic, always runs)
-    UI.showLoading('Running local trust analysis...');
+    // 3. Local analysis (instant, deterministic — uses ALL scraped reviews)
+    UI.showLoading('Running local trust analysis on ' + allReviews.length + ' reviews...');
     var localSignals = LocalAnalysis.analyze(
       allReviews, Scraper.starDist, Scraper.starRating, Scraper.totalRatings
     );
 
-    // 4. Try Gemini enhancement
+    // 4. Try Gemini enhancement (cap at 80 reviews to avoid token bloat)
+    var geminiReviews = allReviews.slice(0, 80);
     UI.showLoading('Analyzing ' + allReviews.length + ' reviews with Gemini AI...');
 
     chrome.runtime.sendMessage({
       action: 'analyzeWithGemini',
-      reviews: allReviews,
+      reviews: geminiReviews,
       starRating: Scraper.starRating,
       totalRatings: Scraper.totalRatings,
       starDist: Scraper.starDist,
@@ -85,7 +87,7 @@
       }
 
       if (!response.success) {
-        return handleGeminiError(response, asin, localSignals, allReviews);
+        return handleGeminiError(response, asin, localSignals, allReviews, geminiReviews);
       }
 
       // Merge local + Gemini and display
@@ -93,19 +95,18 @@
       Cache.set(asin, { data: mergedData, reviewCount: allReviews.length, localSignals: localSignals });
       UI.showResults(mergedData, allReviews.length, localSignals, Scraper);
       UI.injectInlineShowcase(mergedData, localSignals);
+      setupCompare(asin, mergedData, localSignals);
     });
   }
 
   // ── Handle Gemini errors — fall back to local when possible ──────────────────
-  function handleGeminiError(response, asin, localSignals, allReviews) {
+  function handleGeminiError(response, asin, localSignals, allReviews, geminiReviews) {
     if (response.error === 'NO_KEY') {
-      // No API key — show local results with AI enhancement CTA
       showAndCacheLocal(asin, localSignals, allReviews.length);
       return;
     }
 
     if (response.error === 'INVALID_KEY') {
-      // Show local results but also warn about the key
       showAndCacheLocal(asin, localSignals, allReviews.length);
       return;
     }
@@ -113,7 +114,7 @@
     if (response.error && response.error.indexOf('RATE_LIMIT:') === 0) {
       var wait = parseInt(response.error.split(':')[1]) || 60;
       UI.showRateLimit(wait, function () {
-        retryGemini(asin, localSignals, allReviews);
+        retryGemini(asin, localSignals, allReviews, geminiReviews);
       });
       return;
     }
@@ -123,11 +124,11 @@
   }
 
   // ── Retry Gemini after rate limit ────────────────────────────────────────────
-  function retryGemini(asin, localSignals, allReviews) {
+  function retryGemini(asin, localSignals, allReviews, geminiReviews) {
     UI.showLoading('Retrying analysis of ' + allReviews.length + ' reviews...');
     chrome.runtime.sendMessage({
       action: 'analyzeWithGemini',
-      reviews: allReviews,
+      reviews: geminiReviews,
       starRating: Scraper.starRating,
       totalRatings: Scraper.totalRatings,
       starDist: Scraper.starDist,
@@ -155,6 +156,7 @@
     Cache.set(asin, { data: localData, reviewCount: reviewCount, localSignals: localSignals });
     UI.showLocalOnlyResults(localSignals, reviewCount, Scraper);
     UI.injectInlineShowcase(localData, localSignals);
+    setupCompare(asin, localData, localSignals);
   }
 
   // ── Merge local + Gemini: local trust score weighted 70%, Gemini 30% ─────────
@@ -187,6 +189,27 @@
       _local: localSignals,
       _gemini_score: geminiScore
     };
+  }
+
+  // ── Set up compare button with product data ─────────────────────────────────
+  function setupCompare(asin, data, localSignals) {
+    var meta = Scraper.scrapeProductMeta();
+    UI.setupCompareButton({
+      asin:           asin,
+      name:           meta.name,
+      image:          meta.image,
+      price:          meta.price,
+      url:            meta.url,
+      rating:         Scraper.starRating,
+      totalRatings:   Scraper.totalRatings,
+      trustScore:     data.trust_score || (localSignals && localSignals.trustScore) || 0,
+      verdict:        data.rating_verdict || (localSignals && localSignals.ratingVerdict) || 'unknown',
+      concerns:       data.top_concerns || [],
+      praises:        data.top_praises || [],
+      goodFor:        data.good_for || [],
+      avoidIf:        data.avoid_if || [],
+      emotionalPulse: localSignals && localSignals.emotionalPulse || null
+    }, Compare);
   }
 
   // ── Boot ─────────────────────────────────────────────────────────────────────

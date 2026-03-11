@@ -5,7 +5,8 @@
   "description": "AI-powered Amazon review trust analyzer. See what star ratings hide.",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "tabs"
   ],
   "host_permissions": [
     "https://www.amazon.com/*",
@@ -35,7 +36,7 @@
         "https://www.amazon.de/*/dp/*",
         "https://www.amazon.de/dp/*"
       ],
-      "js": ["cache.js", "local-analysis.js", "scraper.js", "ui.js", "content.js"],
+      "js": ["cache.js", "local-analysis.js", "scraper.js", "compare.js", "ui.js", "content.js"],
       "run_at": "document_idle"
     }
   ],

@@ -23,6 +23,24 @@ const enhanceArrow   = document.getElementById('rl-enhance-arrow');
 const featConcerns = document.getElementById('rl-feat-concerns');
 const featBuy      = document.getElementById('rl-feat-buy');
 
+// Compare button
+const compareBtn   = document.getElementById('rl-open-compare-btn');
+const compareBadge = document.getElementById('rl-compare-badge');
+
+// ── Compare: open comparison page ────────────────────────────────────────────
+compareBtn.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('compare.html') });
+});
+
+// Update compare count badge
+function updateCompareCount() {
+  chrome.storage.local.get('rl_compare', data => {
+    const count = (data.rl_compare || []).length;
+    compareBadge.textContent = count;
+  });
+}
+updateCompareCount();
+
 // ── On open: reflect current key state ───────────────────────────────────────
 chrome.storage.local.get('geminiKey', ({ geminiKey }) => {
   if (geminiKey) {

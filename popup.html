@@ -245,6 +245,35 @@
       text-align: center; letter-spacing: 0.3px;
     }
 
+    /* ── Compare button ── */
+    .rl-compare-row {
+      margin: 12px 12px 0;
+      display: flex; gap: 8px;
+    }
+    .rl-compare-btn {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 12.5px; font-weight: 700; color: #475569;
+      cursor: pointer; transition: all 0.2s;
+      font-family: inherit;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .rl-compare-btn:hover {
+      background: #f8fafc;
+      border-color: #6366f1;
+      color: #6366f1;
+    }
+    .rl-compare-badge {
+      background: #eef2ff; color: #6366f1;
+      font-size: 10px; font-weight: 800;
+      padding: 2px 7px; border-radius: 10px;
+      min-width: 18px; text-align: center;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
@@ -348,6 +377,15 @@
       <button class="rl-ai-change-btn" id="change-btn">Change</button>
       <button class="rl-ai-remove-btn" id="clear-btn" title="Remove key">&#x2715;</button>
     </div>
+  </div>
+
+  <!-- Compare Products -->
+  <div class="rl-compare-row">
+    <button class="rl-compare-btn" id="rl-open-compare-btn">
+      <span>&#x2696;</span>
+      <span>Compare Products</span>
+      <span class="rl-compare-badge" id="rl-compare-badge">0</span>
+    </button>
   </div>
 
   <div class="rl-footer">ReviewLens v2.0 &bull; Local + AI Analysis</div>

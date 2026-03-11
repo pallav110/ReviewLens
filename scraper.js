@@ -40,7 +40,7 @@ window.RL.Scraper = {
         '[data-hook="review-star-rating"] .a-icon-alt, ' +
         '[data-hook="review-star-rating-container"] .a-icon-alt'
       );
-      const stars = starEl ? parseFloat(starEl.innerText) || 0 : 0;
+      const stars = starEl ? parseFloat(starEl.textContent) || 0 : 0;
       reviews.push({ text, stars, wordCount: text.split(/\s+/).filter(Boolean).length });
     });
 
@@ -71,7 +71,9 @@ window.RL.Scraper = {
     for (const sel of ratingSelectors) {
       const el = document.querySelector(sel);
       if (el) {
-        const val = parseFloat(el.innerText);
+        // Use textContent — .a-icon-alt elements are visually hidden via CSS clip,
+        // and innerText skips clipped/hidden content in some browsers.
+        const val = parseFloat(el.textContent);
         if (val > 0 && val <= 5) { this._starRating = val; break; }
       }
     }
@@ -86,7 +88,7 @@ window.RL.Scraper = {
     for (const sel of totalSelectors) {
       const el = document.querySelector(sel);
       if (el) {
-        const m = el.innerText.replace(/,/g, '').match(/(\d+)/);
+        const m = (el.textContent || '').replace(/,/g, '').match(/(\d+)/);
         if (m) { this._totalRatings = parseInt(m[1]); break; }
       }
     }
@@ -185,16 +187,16 @@ window.RL.Scraper = {
     });
   },
 
-  // ── Stratified multi-star scrape (2 pages per star level = up to 100 reviews)
+  // ── Stratified multi-star scrape (4 pages per star level = up to 200 reviews)
   async fetchMoreReviews(asin) {
     if (!asin) return [];
     const domain = window.location.hostname;
     const starFilters = ['five_star', 'four_star', 'three_star', 'two_star', 'one_star'];
 
-    // Fetch 2 pages per star level = 10 parallel requests
+    // Fetch 4 pages per star level = 20 parallel requests
     const requests = [];
     for (const filter of starFilters) {
-      for (let page = 1; page <= 2; page++) {
+      for (let page = 1; page <= 4; page++) {
         requests.push(
           this._fetchReviewPage(
             `https://${domain}/product-reviews/${asin}/?filterByStar=${filter}&pageNumber=${page}`
@@ -207,6 +209,35 @@ window.RL.Scraper = {
     const all = [];
     pages.forEach(page => all.push(...page));
     return all;
+  },
+
+  // ── Scrape product metadata for comparison ──────────────────────────────────
+  scrapeProductMeta() {
+    let name = '';
+    const nameEl = document.getElementById('productTitle') || document.querySelector('#title span');
+    if (nameEl) name = nameEl.textContent.trim();
+
+    let image = '';
+    const imgEl = document.getElementById('landingImage') || document.querySelector('#imgBlkFront');
+    if (imgEl) image = imgEl.src || imgEl.dataset.oldHires || '';
+
+    let price = '';
+    const priceSelectors = [
+      '.a-price .a-offscreen',
+      '#priceblock_ourprice',
+      '#priceblock_dealprice',
+      'span.a-price-whole',
+      '[data-hook="deal-price"]',
+    ];
+    for (const sel of priceSelectors) {
+      const el = document.querySelector(sel);
+      if (el && el.textContent.trim()) {
+        price = el.textContent.trim();
+        break;
+      }
+    }
+
+    return { name, image, price, url: window.location.href };
   },
 
   // ── Deduplicate and merge reviews ──────────────────────────────────────────

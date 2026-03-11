@@ -17,6 +17,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // keep message channel open for async sendResponse
   }
 
+  if (message.action === 'openCompare') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('compare.html') });
+    return false;
+  }
+
   if (message.action === 'fetchPage') {
     fetchPage(message.url)
       .then(html  => sendResponse({ success: true,  html }))

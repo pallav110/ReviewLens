@@ -1,6 +1,7 @@
 // ReviewLens — ui.js
 // All UI concerns: CSS, HTML templates, rendering, animations, drag/resize.
 // Uses Shadow DOM for full isolation from Amazon's page styles.
+// Design: soft dark slate (#1e293b) with indigo (#6366f1) accent — matches popup.
 
 'use strict';
 
@@ -21,16 +22,16 @@ const SIDEBAR_CSS = `
     transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     font-size: 13px;
-    color: #f0f0f4;
+    color: #e2e8f0;
   }
   :host > div { height: 100%; overflow: hidden; }
 
   #rl-panel {
     width: 100%; height: 100%;
-    background: #0c0e14;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 107, 53, 0.25);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.04) inset;
+    background: #1e293b;
+    border-radius: 16px;
+    border: 1px solid rgba(99,102,241,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.05) inset;
     display: flex; flex-direction: column;
     overflow: hidden;
     position: relative;
@@ -39,32 +40,39 @@ const SIDEBAR_CSS = `
   /* ── Header ── */
   #rl-header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 11px 14px;
-    background: linear-gradient(135deg, #FF6B35 0%, #e8521e 100%);
-    border-radius: 13px 13px 0 0; flex-shrink: 0;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border-radius: 15px 15px 0 0; flex-shrink: 0;
     cursor: grab; user-select: none;
-    border-bottom: 1px solid rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(0,0,0,0.15);
   }
   #rl-header:active { cursor: grabbing; }
+  .rl-header-left { display: flex; align-items: center; gap: 9px; }
+  .rl-header-mark {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 900; color: #fff;
+  }
   #rl-logo { font-weight: 800; font-size: 13px; letter-spacing: 0.2px; color: #fff; }
   #rl-logo span {
-    display: block; font-weight: 400; font-size: 9.5px;
-    opacity: 0.8; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 1px;
+    display: block; font-weight: 400; font-size: 9px;
+    opacity: 0.75; letter-spacing: 0.4px; text-transform: uppercase; margin-top: 1px;
   }
   #rl-close {
-    background: rgba(0,0,0,0.2); border: none; color: rgba(255,255,255,0.9);
-    width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+    background: rgba(255,255,255,0.15); border: none; color: rgba(255,255,255,0.85);
+    width: 22px; height: 22px; border-radius: 6px; cursor: pointer;
     font-size: 11px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     transition: background 0.15s; flex-shrink: 0;
   }
-  #rl-close:hover { background: rgba(0,0,0,0.35); }
+  #rl-close:hover { background: rgba(255,255,255,0.25); }
 
   /* ── Scrollable content ── */
-  #rl-content { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
+  #rl-content { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
   #rl-content::-webkit-scrollbar { width: 4px; }
   #rl-content::-webkit-scrollbar-track { background: transparent; }
-  #rl-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  #rl-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
 
   /* ── Loading ── */
   #rl-loading {
@@ -73,43 +81,43 @@ const SIDEBAR_CSS = `
   }
   .rl-spinner {
     width: 30px; height: 30px;
-    border: 2.5px solid rgba(255,255,255,0.08);
-    border-top-color: #FF6B35;
+    border: 2.5px solid rgba(255,255,255,0.06);
+    border-top-color: #818cf8;
     border-radius: 50%; animation: rl-spin 0.75s linear infinite; margin-bottom: 14px;
   }
   @keyframes rl-spin { to { transform: rotate(360deg); } }
-  #rl-loading-text { font-weight: 600; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 5px; }
-  #rl-countdown    { font-size: 11px; color: rgba(255,255,255,0.35); }
+  #rl-loading-text { font-weight: 600; font-size: 13px; color: #94a3b8; margin-bottom: 5px; }
+  #rl-countdown    { font-size: 11px; color: #64748b; }
 
   /* ── Error ── */
   #rl-error { padding: 24px 18px; text-align: center; }
   #rl-error-icon { font-size: 28px; margin-bottom: 10px; }
-  #rl-error-msg  { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  #rl-error-msg  { font-size: 12px; color: #94a3b8; line-height: 1.6; }
   #rl-error-action {
     display: inline-block; margin-top: 14px;
     padding: 7px 16px; border-radius: 8px;
-    background: #FF6B35; color: #fff;
+    background: #6366f1; color: #fff;
     font-size: 12px; font-weight: 700; cursor: pointer;
     border: none; text-decoration: none;
   }
-  #rl-error-action:hover { background: #e8521e; }
+  #rl-error-action:hover { background: #4f46e5; }
 
   /* ── No-key state ── */
   #rl-nokey { padding: 24px 18px; text-align: center; }
   .rl-nokey-icon { font-size: 30px; margin-bottom: 12px; }
-  .rl-nokey-title { font-size: 14px; font-weight: 700; color: #f0f0f4; margin-bottom: 8px; }
-  .rl-nokey-text  { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.6; margin-bottom: 16px; }
+  .rl-nokey-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px; }
+  .rl-nokey-text  { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 16px; }
   .rl-nokey-steps { text-align: left; margin: 0 0 16px; padding: 0 0 0 18px; }
-  .rl-nokey-steps li { font-size: 11.5px; color: rgba(255,255,255,0.5); line-height: 1.7; }
-  .rl-nokey-steps a { color: #FF6B35; text-decoration: none; }
+  .rl-nokey-steps li { font-size: 11.5px; color: #94a3b8; line-height: 1.7; }
+  .rl-nokey-steps a { color: #818cf8; text-decoration: none; }
 
   /* ── Glass card ── */
   .rl-card {
     margin: 10px 10px 0;
     padding: 12px 13px;
-    background: rgba(255,255,255,0.035);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
     animation: rl-fade-up 0.4s ease both;
   }
   @keyframes rl-fade-up {
@@ -126,7 +134,7 @@ const SIDEBAR_CSS = `
   .rl-card-title {
     font-size: 9.5px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.9px;
-    color: rgba(255,255,255,0.3); margin-bottom: 10px;
+    color: #64748b; margin-bottom: 10px;
   }
 
   /* ── Trust Score hero ── */
@@ -141,29 +149,30 @@ const SIDEBAR_CSS = `
   }
   .rl-trust-right { padding-bottom: 6px; }
   #rl-trust-label { font-size: 12px; font-weight: 700; color: #4ade80; transition: color 0.5s; }
-  #rl-trust-sublabel { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+  #rl-trust-sublabel { font-size: 10px; color: #64748b; margin-top: 2px; }
   .rl-trust-bar-track {
-    background: rgba(255,255,255,0.07);
-    border-radius: 3px; height: 3px; overflow: hidden; margin-bottom: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px; height: 4px; overflow: hidden; margin-bottom: 6px;
   }
   #rl-trust-bar-fill {
-    height: 100%; border-radius: 3px; width: 0%;
+    height: 100%; border-radius: 4px; width: 0%;
     background: #4ade80;
     transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.5s;
     box-shadow: 0 0 8px currentColor;
   }
-  .rl-trust-meta { display: flex; justify-content: space-between; font-size: 9.5px; color: rgba(255,255,255,0.3); }
+  .rl-trust-meta { display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; }
   #rl-confidence-badge {
     font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-    padding: 1px 6px; border-radius: 10px;
-    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5);
+    padding: 2px 8px; border-radius: 10px;
+    background: rgba(99,102,241,0.1); color: #818cf8;
+    border: 1px solid rgba(99,102,241,0.2);
   }
   #rl-score-source {
-    font-size: 9px; color: rgba(255,255,255,0.25); margin-top: 4px;
+    font-size: 9px; color: #475569; margin-top: 4px;
     font-style: italic;
   }
   #rl-summary-text {
-    font-size: 11.5px; color: rgba(255,255,255,0.5); line-height: 1.55;
+    font-size: 11.5px; color: #94a3b8; line-height: 1.55;
     margin-top: 8px; padding-top: 8px;
     border-top: 1px solid rgba(255,255,255,0.05);
     font-style: italic;
@@ -172,33 +181,33 @@ const SIDEBAR_CSS = `
   /* ── Rating Integrity ── */
   .rl-rating-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .rl-star-box { flex: 1; text-align: center; }
-  .rl-star-value { font-size: 26px; font-weight: 800; color: #f0f0f4; }
+  .rl-star-value { font-size: 26px; font-weight: 800; color: #e2e8f0; }
   .rl-star-icon  { color: #fbbf24; font-size: 18px; }
-  .rl-star-lbl   { font-size: 9px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
-  .rl-rating-vs  { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.2); }
+  .rl-star-lbl   { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+  .rl-rating-vs  { font-size: 11px; font-weight: 700; color: #475569; }
   #rl-rating-verdict-row { display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); }
   #rl-verdict-badge {
     padding: 3px 10px; border-radius: 20px;
     font-weight: 700; font-size: 11px; flex-shrink: 0;
   }
-  .rl-verdict-accurate   { background: rgba(74,222,128,0.15);  color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-  .rl-verdict-inflated   { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-  .rl-verdict-deflated   { background: rgba(96,165,250,0.15);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-  .rl-verdict-suspicious { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
-  .rl-verdict-caution    { background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
-  .rl-verdict-unknown    { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.4); }
-  #rl-verdict-explanation { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+  .rl-verdict-accurate   { background: rgba(74,222,128,0.12);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+  .rl-verdict-inflated   { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+  .rl-verdict-deflated   { background: rgba(96,165,250,0.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
+  .rl-verdict-suspicious { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.25); }
+  .rl-verdict-caution    { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+  .rl-verdict-unknown    { background: rgba(255,255,255,0.06); color: #94a3b8; }
+  #rl-verdict-explanation { font-size: 11px; color: #94a3b8; line-height: 1.5; }
 
   /* ── Emotional Pulse ── */
   .rl-bar-row   { margin-bottom: 7px; }
-  .rl-bar-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: rgba(255,255,255,0.55); }
-  .rl-bar-pct   { font-weight: 700; color: #f0f0f4; }
-  .rl-bar-track { background: rgba(255,255,255,0.07); border-radius: 3px; height: 6px; overflow: hidden; }
-  .rl-bar       { height: 100%; border-radius: 3px; width: 0%; transition: width 0.9s cubic-bezier(0.34,1.56,0.64,1); }
-  .rl-bar-positive { background: linear-gradient(90deg, #34A853, #4ade80); }
-  .rl-bar-neutral  { background: linear-gradient(90deg, #b45309, #fbbf24); }
-  .rl-bar-negative { background: linear-gradient(90deg, #b91c1c, #f87171); }
-  #rl-review-count { font-size: 10px; color: rgba(255,255,255,0.3); margin-bottom: 10px; }
+  .rl-bar-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: #94a3b8; }
+  .rl-bar-pct   { font-weight: 700; color: #e2e8f0; }
+  .rl-bar-track { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; overflow: hidden; }
+  .rl-bar       { height: 100%; border-radius: 4px; width: 0%; transition: width 0.9s cubic-bezier(0.34,1.56,0.64,1); }
+  .rl-bar-positive { background: linear-gradient(90deg, #059669, #34d399); }
+  .rl-bar-neutral  { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .rl-bar-negative { background: linear-gradient(90deg, #dc2626, #f87171); }
+  #rl-review-count { font-size: 10px; color: #64748b; margin-bottom: 10px; }
 
   /* ── Phrase lists ── */
   .rl-phrase-list { list-style: none; padding: 0; }
@@ -208,14 +217,14 @@ const SIDEBAR_CSS = `
     font-size: 12px; line-height: 1.4;
   }
   .rl-phrase-list li:last-child { border-bottom: none; }
-  .rl-phrase-text  { flex: 1; color: rgba(255,255,255,0.75); }
+  .rl-phrase-text  { flex: 1; color: #cbd5e1; }
   .rl-phrase-count {
-    font-size: 10px; color: rgba(255,255,255,0.3); margin-left: 8px;
+    font-size: 10px; color: #64748b; margin-left: 8px;
     white-space: nowrap; font-variant-numeric: tabular-nums;
   }
   .rl-complaints li::before { content: "\\2013"; color: #f87171; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
-  .rl-praises    li::before { content: "+"; color: #4ade80; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
-  .rl-empty-msg  { font-size: 11px; color: rgba(255,255,255,0.25); font-style: italic; }
+  .rl-praises    li::before { content: "+"; color: #34d399; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
+  .rl-empty-msg  { font-size: 11px; color: #475569; font-style: italic; }
 
   /* ── Trust Signals ── */
   #rl-trust-list { list-style: none; padding: 0; }
@@ -226,40 +235,40 @@ const SIDEBAR_CSS = `
   }
   .rl-trust-flag:last-child { border-bottom: none; }
   .rl-trust-icon { flex-shrink: 0; font-size: 11px; }
-  .rl-trust-clean { font-size: 11px; color: #86efac; padding: 2px 0; }
+  .rl-trust-clean { font-size: 11px; color: #34d399; padding: 2px 0; }
 
   /* ── Should You Buy ── */
   .rl-buy-row { display: flex; gap: 8px; }
   .rl-buy-col { flex: 1; }
   .rl-buy-head { font-size: 10px; font-weight: 700; margin-bottom: 7px; display: flex; align-items: center; gap: 4px; }
-  .rl-buy-head-yes { color: #4ade80; }
+  .rl-buy-head-yes { color: #34d399; }
   .rl-buy-head-no  { color: #f87171; }
   .rl-buy-list { list-style: none; padding: 0; }
   .rl-buy-list li {
-    font-size: 11px; color: rgba(255,255,255,0.55); line-height: 1.4;
+    font-size: 11px; color: #94a3b8; line-height: 1.4;
     padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
   }
   .rl-buy-list li:last-child { border-bottom: none; }
-  .rl-buy-empty { font-size: 11px; color: rgba(255,255,255,0.2); font-style: italic; }
+  .rl-buy-empty { font-size: 11px; color: #475569; font-style: italic; }
 
   /* ── AI Enhancement CTA ── */
   .rl-ai-cta {
     margin: 10px 10px 0;
     padding: 12px 13px;
-    background: rgba(255,107,53,0.06);
-    border: 1px dashed rgba(255,107,53,0.3);
-    border-radius: 10px;
+    background: rgba(99,102,241,0.06);
+    border: 1px dashed rgba(99,102,241,0.25);
+    border-radius: 12px;
     text-align: center;
     animation: rl-fade-up 0.4s ease both;
     animation-delay: 0.35s;
   }
-  .rl-ai-cta-title { font-size: 11px; font-weight: 700; color: #FF6B35; margin-bottom: 5px; }
-  .rl-ai-cta-text  { font-size: 10.5px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+  .rl-ai-cta-title { font-size: 11px; font-weight: 700; color: #818cf8; margin-bottom: 5px; }
+  .rl-ai-cta-text  { font-size: 10.5px; color: #64748b; line-height: 1.5; }
 
   /* ── Footer ── */
   #rl-footer {
     padding: 7px 14px; text-align: center;
-    font-size: 9.5px; color: rgba(255,255,255,0.18);
+    font-size: 9.5px; color: #475569;
     border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;
     letter-spacing: 0.3px;
   }
@@ -269,22 +278,61 @@ const SIDEBAR_CSS = `
     position: absolute; bottom: 0; right: 0;
     width: 18px; height: 18px;
     cursor: se-resize;
-    border-radius: 0 0 13px 0;
+    border-radius: 0 0 15px 0;
     background:
       linear-gradient(135deg,
-        transparent 30%, rgba(255,107,53,0.5) 30%, rgba(255,107,53,0.5) 36%, transparent 36%,
-        transparent 50%, rgba(255,107,53,0.5) 50%, rgba(255,107,53,0.5) 56%, transparent 56%,
-        transparent 70%, rgba(255,107,53,0.5) 70%, rgba(255,107,53,0.5) 76%, transparent 76%
+        transparent 30%, rgba(99,102,241,0.4) 30%, rgba(99,102,241,0.4) 36%, transparent 36%,
+        transparent 50%, rgba(99,102,241,0.4) 50%, rgba(99,102,241,0.4) 56%, transparent 56%,
+        transparent 70%, rgba(99,102,241,0.4) 70%, rgba(99,102,241,0.4) 76%, transparent 76%
       );
     z-index: 10;
   }
   #rl-resize-handle:hover { background:
     linear-gradient(135deg,
-      transparent 30%, rgba(255,107,53,0.9) 30%, rgba(255,107,53,0.9) 36%, transparent 36%,
-      transparent 50%, rgba(255,107,53,0.9) 50%, rgba(255,107,53,0.9) 56%, transparent 56%,
-      transparent 70%, rgba(255,107,53,0.9) 70%, rgba(255,107,53,0.9) 76%, transparent 76%
+      transparent 30%, rgba(99,102,241,0.8) 30%, rgba(99,102,241,0.8) 36%, transparent 36%,
+      transparent 50%, rgba(99,102,241,0.8) 50%, rgba(99,102,241,0.8) 56%, transparent 56%,
+      transparent 70%, rgba(99,102,241,0.8) 70%, rgba(99,102,241,0.8) 76%, transparent 76%
     );
   }
+
+  /* ── Compare Button ── */
+  #rl-compare-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin: 10px 10px 0;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.06));
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 10px;
+    color: #818cf8;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+    animation: rl-fade-up 0.4s ease both;
+    animation-delay: 0.4s;
+  }
+  #rl-compare-btn:hover {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(99,102,241,0.12));
+    border-color: rgba(99,102,241,0.4);
+  }
+  #rl-compare-btn.rl-compare-saved {
+    background: rgba(74,222,128,0.08);
+    border-color: rgba(74,222,128,0.25);
+    color: #4ade80;
+    cursor: default;
+  }
+  .rl-compare-icon { font-size: 13px; }
+  #rl-compare-count {
+    font-size: 10px; color: #64748b;
+    text-align: center;
+    margin: 4px 10px 0;
+    animation: rl-fade-up 0.4s ease both;
+    animation-delay: 0.45s;
+  }
+  #rl-compare-count a {
+    color: #818cf8; text-decoration: none; font-weight: 600;
+    cursor: pointer;
+  }
+  #rl-compare-count a:hover { text-decoration: underline; }
 
   .hidden { display: none !important; }
 `;
@@ -293,7 +341,10 @@ const SIDEBAR_CSS = `
 const SIDEBAR_HTML = `
   <div id="rl-panel">
     <div id="rl-header">
-      <div id="rl-logo">ReviewLens <span>Product Truth Panel</span></div>
+      <div class="rl-header-left">
+        <div class="rl-header-mark">RL</div>
+        <div id="rl-logo">ReviewLens <span>Trust Analyzer</span></div>
+      </div>
       <button id="rl-close" title="Close">&#x2715;</button>
     </div>
 
@@ -420,6 +471,13 @@ const SIDEBAR_HTML = `
           </div>
         </div>
 
+        <!-- Compare Button -->
+        <button id="rl-compare-btn" class="hidden">
+          <span class="rl-compare-icon">&#x2696;</span>
+          <span id="rl-compare-btn-text">Save to Compare</span>
+        </button>
+        <div id="rl-compare-count" class="hidden"></div>
+
         <!-- AI Enhancement CTA (shown in local-only mode) -->
         <div id="rl-ai-cta" class="rl-ai-cta hidden">
           <div class="rl-ai-cta-title">&#x2728; Enhance with Gemini AI</div>
@@ -429,12 +487,12 @@ const SIDEBAR_HTML = `
       </div><!-- /#rl-results -->
     </div><!-- /#rl-content -->
 
-    <div id="rl-footer">ReviewLens &bull; Local + AI Analysis &bull; Drag header &bull; Resize corner</div>
+    <div id="rl-footer">ReviewLens &bull; Local + AI &bull; Drag header &bull; Resize corner</div>
     <div id="rl-resize-handle" title="Drag to resize"></div>
   </div>
 `;
 
-// ── Inline Showcase CSS (injected into a Shadow DOM wrapper, not page head) ────
+// ── Inline Showcase CSS (Shadow DOM) ────────────────────────────────────────────
 const SHOWCASE_CSS = `
   :host {
     display: block;
@@ -443,18 +501,18 @@ const SHOWCASE_CSS = `
   }
   .rl-showcase {
     padding: 18px 20px;
-    background: #0c0e14;
-    border-radius: 12px;
-    border: 1px solid rgba(255,107,53,0.3);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    background: #1e293b;
+    border-radius: 14px;
+    border: 1px solid rgba(99,102,241,0.2);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     display: flex; align-items: center; gap: 16px;
     position: relative; overflow: hidden;
-    color: #f0f0f4;
+    color: #e2e8f0;
   }
   .rl-showcase::before {
     content: '';
     position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, #FF6B35, #e8521e);
+    background: linear-gradient(90deg, #6366f1, #818cf8);
   }
   .rl-sc-score-wrap {
     display: flex; flex-direction: column; align-items: center;
@@ -475,31 +533,36 @@ const SHOWCASE_CSS = `
   .rl-sc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .rl-sc-brand {
     font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
-    text-transform: uppercase; color: #FF6B35;
+    text-transform: uppercase; color: #818cf8;
   }
   .rl-sc-verdict {
     padding: 2px 9px; border-radius: 20px;
     font-size: 10px; font-weight: 700; text-transform: capitalize;
   }
-  .rl-sc-verdict-accurate   { background: rgba(74,222,128,0.15);  color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
-  .rl-sc-verdict-inflated   { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
-  .rl-sc-verdict-deflated   { background: rgba(96,165,250,0.15);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
-  .rl-sc-verdict-suspicious { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
-  .rl-sc-verdict-caution    { background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .rl-sc-verdict-accurate   { background: rgba(74,222,128,0.12);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+  .rl-sc-verdict-inflated   { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+  .rl-sc-verdict-deflated   { background: rgba(96,165,250,0.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
+  .rl-sc-verdict-suspicious { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.25); }
+  .rl-sc-verdict-caution    { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
   .rl-sc-summary {
-    font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5;
+    font-size: 12px; color: #94a3b8; line-height: 1.5;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .rl-sc-btn {
     flex-shrink: 0;
     padding: 8px 14px;
-    background: #FF6B35; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
     border: none; border-radius: 8px;
     font-size: 12px; font-weight: 700;
-    cursor: pointer; transition: background 0.2s; white-space: nowrap;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
     font-family: inherit;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.3);
   }
-  .rl-sc-btn:hover { background: #e8521e; }
+  .rl-sc-btn:hover {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    box-shadow: 0 4px 12px rgba(99,102,241,0.4);
+  }
 `;
 
 // ── Shadow DOM references ───────────────────────────────────────────────────────
@@ -514,10 +577,10 @@ function esc(str) {
 
 // ── Trust score color/label ─────────────────────────────────────────────────────
 function trustScoreStyle(score) {
-  if (score >= 75) return { color: '#4ade80', glow: 'rgba(74,222,128,0.35)',  label: 'High Trust' };
-  if (score >= 55) return { color: '#fbbf24', glow: 'rgba(251,191,36,0.35)',  label: 'Moderate' };
-  if (score >= 35) return { color: '#fb923c', glow: 'rgba(251,146,60,0.35)',  label: 'Caution' };
-  return                  { color: '#f87171', glow: 'rgba(248,113,113,0.35)', label: 'Low Trust' };
+  if (score >= 75) return { color: '#4ade80', glow: 'rgba(74,222,128,0.3)',  label: 'High Trust' };
+  if (score >= 55) return { color: '#fbbf24', glow: 'rgba(251,191,36,0.3)',  label: 'Moderate' };
+  if (score >= 35) return { color: '#fb923c', glow: 'rgba(251,146,60,0.3)',  label: 'Caution' };
+  return                  { color: '#f87171', glow: 'rgba(248,113,113,0.3)', label: 'Low Trust' };
 }
 
 // ── Count-up animation ──────────────────────────────────────────────────────────
@@ -662,7 +725,7 @@ window.RL.UI = {
     sd('rl-sample-note').textContent     = `${reviewCount} review${reviewCount !== 1 ? 's' : ''} analyzed`;
     sd('rl-confidence-badge').textContent = `${confidence.charAt(0).toUpperCase() + confidence.slice(1)} confidence`;
 
-    // Source badge: shows the scoring method
+    // Source badge
     const sourceEl = sd('rl-score-source');
     if (data._local) {
       sourceEl.textContent = `Score: ${Math.round(data._local.trustScore * 0.7)}pts local + ${Math.round((data._gemini_score || 75) * 0.3)}pts AI`;
@@ -705,7 +768,7 @@ window.RL.UI = {
     };
     sd('rl-verdict-explanation').textContent = explanations[verdict] || '';
 
-    // Trust Signals — merge local + Gemini flags
+    // Trust Signals
     const flags = Array.isArray(data.trust_flags) ? data.trust_flags : [];
     const tl = sd('rl-trust-list');
     tl.innerHTML = flags.length === 0
@@ -725,14 +788,9 @@ window.RL.UI = {
       sd('rl-neg-bar').style.width = `${pulse.negative}%`;
     });
 
-    // Concerns, Praises, Buy recommendations — only if Gemini data present
-    const hasConcerns = data.top_concerns && data.top_concerns.length > 0;
-    const hasPraises  = data.top_praises && data.top_praises.length > 0;
-    const hasBuy      = (data.good_for && data.good_for.length > 0) || (data.avoid_if && data.avoid_if.length > 0);
-
+    // Concerns, Praises, Buy recommendations
     this._renderPhraseList('rl-complaints-list', data.top_concerns, 'No recurring concerns found.');
     this._renderPhraseList('rl-praises-list',    data.top_praises,  'No recurring praises found.');
-
     this._renderBuyList('rl-buy-yes', data.good_for,  'Not enough data');
     this._renderBuyList('rl-buy-no',  data.avoid_if,  'No concerns found');
 
@@ -740,6 +798,10 @@ window.RL.UI = {
     sd('rl-ai-cta').classList.add('hidden');
 
     // Hide Gemini-only sections if data is missing (local-only mode)
+    const hasConcerns = data.top_concerns && data.top_concerns.length > 0;
+    const hasPraises  = data.top_praises && data.top_praises.length > 0;
+    const hasBuy      = (data.good_for && data.good_for.length > 0) || (data.avoid_if && data.avoid_if.length > 0);
+
     const concernsCard = sd('rl-concerns-card');
     const praisesCard  = sd('rl-praises-card');
     const buyCard      = sd('rl-buy-card');
@@ -753,7 +815,6 @@ window.RL.UI = {
 
   // ── Show local-only results (no API key / Gemini failure) ────────────────────
   showLocalOnlyResults(localSignals, reviewCount, scraper) {
-    // Build a data object from local signals only
     const localData = {
       trust_score: localSignals.trustScore,
       trust_flags: localSignals.signals.map(s => s.detail),
@@ -764,18 +825,14 @@ window.RL.UI = {
       negative_pct: localSignals.emotionalPulse ? localSignals.emotionalPulse.negative : null,
       confidence: reviewCount >= 50 ? 'high' : reviewCount >= 25 ? 'medium' : 'low',
       summary: null,
-      top_concerns: null,  // not available without Gemini
+      top_concerns: null,
       top_praises: null,
       good_for: null,
       avoid_if: null,
     };
 
     this.showResults(localData, reviewCount, localSignals, scraper);
-
-    // Show AI enhancement CTA
     sd('rl-ai-cta').classList.remove('hidden');
-
-    // Update source badge
     sd('rl-score-source').textContent = 'Score: local statistical analysis only';
   },
 
@@ -788,7 +845,6 @@ window.RL.UI = {
     );
     if (!anchor) return;
 
-    // Use Shadow DOM for the showcase too — full isolation from Amazon CSS
     const host = document.createElement('div');
     host.id = 'reviewlens-showcase-host';
     anchor.parentNode.insertBefore(host, anchor);
@@ -826,7 +882,66 @@ window.RL.UI = {
     });
   },
 
-  // ── Private: render phrase list ──────────────────────────────────────────────
+  // ── Set up compare button ───────────────────────────────────────────────────
+  async setupCompareButton(productData, CompareModule) {
+    const btn       = sd('rl-compare-btn');
+    const btnText   = sd('rl-compare-btn-text');
+    const countLine = sd('rl-compare-count');
+    if (!btn) return;
+
+    btn.classList.remove('hidden');
+
+    const Compare = CompareModule;
+    if (!Compare) { btn.classList.add('hidden'); return; }
+
+    // Check if already saved
+    const alreadySaved = await Compare.isSaved(productData.asin);
+    if (alreadySaved) {
+      btn.classList.add('rl-compare-saved');
+      btnText.textContent = '\u2713 Saved to Compare';
+    }
+
+    // Show count
+    const count = await Compare.count();
+    if (count > 0) {
+      countLine.classList.remove('hidden');
+      countLine.innerHTML = `${count} product${count !== 1 ? 's' : ''} saved \u2014 <a id="rl-open-compare">View Comparison</a>`;
+      const openLink = sd('rl-open-compare');
+      if (openLink) {
+        openLink.addEventListener('click', () => {
+          chrome.runtime.sendMessage({ action: 'openCompare' });
+        });
+      }
+    }
+
+    // Click handler (only if not already saved)
+    if (!alreadySaved) {
+      btn.addEventListener('click', async () => {
+        const result = await Compare.save(productData);
+        if (result.success) {
+          btn.classList.add('rl-compare-saved');
+          btnText.textContent = '\u2713 Saved to Compare';
+
+          countLine.classList.remove('hidden');
+          countLine.innerHTML = `${result.count} product${result.count !== 1 ? 's' : ''} saved \u2014 <a id="rl-open-compare">View Comparison</a>`;
+          const openLink = sd('rl-open-compare');
+          if (openLink) {
+            openLink.addEventListener('click', () => {
+              chrome.runtime.sendMessage({ action: 'openCompare' });
+            });
+          }
+        } else if (result.reason === 'already_saved') {
+          btn.classList.add('rl-compare-saved');
+          btnText.textContent = '\u2713 Already Saved';
+        } else if (result.reason === 'limit_reached') {
+          btnText.textContent = 'Limit reached (10 max)';
+          setTimeout(() => { btnText.textContent = 'Save to Compare'; }, 2000);
+        }
+      });
+    }
+  },
+
+  // ── Private helpers ──────────────────────────────────────────────────────────
   _renderPhraseList(listId, items, emptyMsg) {
     const ul = sd(listId);
     if (!items || items.length === 0) {
@@ -841,7 +956,6 @@ window.RL.UI = {
     ).join('');
   },
 
-  // ── Private: render buy list ─────────────────────────────────────────────────
   _renderBuyList(listId, items, emptyMsg) {
     const ul = sd(listId);
     if (!items || items.length === 0) {
@@ -851,7 +965,6 @@ window.RL.UI = {
     ul.innerHTML = items.map(t => `<li>${esc(String(t))}</li>`).join('');
   },
 
-  // ── Private: drag to move ────────────────────────────────────────────────────
   _makeDraggable(host) {
     const header = sd('rl-header');
     if (!header) return;
@@ -880,7 +993,6 @@ window.RL.UI = {
     });
   },
 
-  // ── Private: resize from bottom-right corner ─────────────────────────────────
   _makeResizable(host) {
     const handle = sd('rl-resize-handle');
     if (!handle) return;
