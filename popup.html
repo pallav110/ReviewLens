@@ -6,173 +6,351 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      width: 280px;
-      background: #0f1117;
-      color: #f0f0f4;
+      width: 320px;
+      background: #fafafa;
+      color: #1a1a2e;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       font-size: 13px;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── Header ── */
     .rl-header {
-      background: linear-gradient(135deg, #FF6B35 0%, #d94f1a 100%);
-      padding: 13px 15px 11px;
-      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 18px 20px 16px;
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .rl-brand     { font-weight: 900; font-size: 16px; color: #fff; letter-spacing: -0.3px; }
-    .rl-sub       { font-size: 9px; font-weight: 500; text-transform: uppercase;
-                    letter-spacing: 0.7px; color: rgba(255,255,255,0.7); margin-top: 2px; }
-    .rl-pill {
-      padding: 3px 10px; border-radius: 20px;
+    .rl-brand-group { display: flex; align-items: center; gap: 10px; }
+    .rl-logo-mark {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: #fff; font-weight: 800;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
+    .rl-brand { font-weight: 800; font-size: 15px; color: #1a1a2e; letter-spacing: -0.3px; }
+    .rl-sub {
+      font-size: 10px; font-weight: 500; color: #94a3b8;
+      letter-spacing: 0.2px; margin-top: 1px;
+    }
+    .rl-badge {
+      padding: 4px 10px; border-radius: 20px;
       font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
-      margin-top: 2px; flex-shrink: 0;
+      flex-shrink: 0;
     }
-    .rl-pill-active   { background: rgba(74,222,128,0.2);  color: #4ade80; border: 1px solid rgba(74,222,128,0.35); }
-    .rl-pill-inactive { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.15); }
-
-    /* ── Status row (shown when key exists) ── */
-    #rl-key-status {
-      display: none;
-      align-items: center; justify-content: space-between;
-      padding: 11px 15px;
-      background: rgba(74,222,128,0.05);
-      border-bottom: 1px solid rgba(74,222,128,0.12);
+    .rl-badge-ready {
+      background: #ecfdf5; color: #059669;
+      border: 1px solid #a7f3d0;
     }
-    .rl-key-label { font-size: 9px; font-weight: 700; text-transform: uppercase;
-                    letter-spacing: 0.7px; color: rgba(255,255,255,0.3); margin-bottom: 3px; }
-    .rl-key-val   { font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.55); }
-    .rl-key-check { font-size: 16px; color: #4ade80; }
+    .rl-badge-enhanced {
+      background: #eef2ff; color: #4f46e5;
+      border: 1px solid #c7d2fe;
+    }
 
-    /* ── Section ── */
-    .rl-section { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .rl-section-title {
+    /* ── Status hero ── */
+    .rl-status-hero {
+      margin: 12px 12px 0;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .rl-status-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 4px;
+    }
+    .rl-status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+      animation: rl-pulse 2s ease-in-out infinite;
+    }
+    .rl-status-dot-green { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+    .rl-status-dot-indigo { background: #6366f1; box-shadow: 0 0 6px rgba(99,102,241,0.4); }
+    @keyframes rl-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .rl-status-text { font-size: 13px; font-weight: 700; color: #334155; }
+    .rl-status-sub { font-size: 11px; color: #94a3b8; margin-left: 18px; }
+
+    /* ── Feature checklist ── */
+    .rl-features {
+      margin: 12px 12px 0;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .rl-features-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #94a3b8; margin-bottom: 10px;
+    }
+    .rl-feat {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0;
+    }
+    .rl-feat + .rl-feat { border-top: 1px solid #f1f5f9; }
+    .rl-feat-icon {
+      width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; flex-shrink: 0;
+    }
+    .rl-feat-on {
+      background: #ecfdf5; color: #059669;
+    }
+    .rl-feat-off {
+      background: #f1f5f9; color: #cbd5e1;
+    }
+    .rl-feat-label { font-size: 12px; color: #475569; flex: 1; }
+    .rl-feat-label-dim { color: #94a3b8; }
+    .rl-feat-tag {
       font-size: 9px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.8px; color: rgba(255,255,255,0.28); margin-bottom: 10px;
+      letter-spacing: 0.4px; padding: 2px 6px; border-radius: 4px;
+      flex-shrink: 0;
     }
+    .rl-feat-tag-free { background: #ecfdf5; color: #059669; }
+    .rl-feat-tag-ai   { background: #eef2ff; color: #6366f1; }
+
+    /* ── AI enhance section ── */
+    .rl-enhance {
+      margin: 12px 12px 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .rl-enhance-toggle {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 16px;
+      cursor: pointer; transition: background 0.15s;
+      border: none; background: none; width: 100%;
+      text-align: left; font-family: inherit;
+    }
+    .rl-enhance-toggle:hover { background: #f8fafc; }
+    .rl-enhance-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .rl-enhance-body { flex: 1; min-width: 0; }
+    .rl-enhance-title { font-size: 12.5px; font-weight: 700; color: #334155; }
+    .rl-enhance-sub { font-size: 10.5px; color: #94a3b8; margin-top: 1px; }
+    .rl-enhance-arrow {
+      font-size: 14px; color: #cbd5e1; flex-shrink: 0;
+      transition: transform 0.25s ease;
+    }
+    .rl-enhance-arrow.open { transform: rotate(180deg); }
+
+    .rl-enhance-panel {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .rl-enhance-panel.open { max-height: 280px; }
+    .rl-enhance-content {
+      padding: 0 16px 14px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .rl-enhance-content .rl-input-label {
+      font-size: 10px; font-weight: 600; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin: 12px 0 6px;
+    }
+
+    /* ── AI active banner (replaces toggle when key saved) ── */
+    .rl-ai-active {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 16px;
+    }
+    .rl-ai-active-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #6366f1; box-shadow: 0 0 6px rgba(99,102,241,0.4);
+      flex-shrink: 0;
+    }
+    .rl-ai-active-info { flex: 1; }
+    .rl-ai-active-title { font-size: 12px; font-weight: 700; color: #4f46e5; }
+    .rl-ai-active-key { font-size: 10.5px; color: #94a3b8; font-family: 'SF Mono', 'Cascadia Code', monospace; margin-top: 1px; }
+    .rl-ai-change-btn {
+      font-size: 10px; font-weight: 600; color: #94a3b8;
+      background: #f1f5f9; border: 1px solid #e2e8f0;
+      padding: 4px 10px; border-radius: 6px; cursor: pointer;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .rl-ai-change-btn:hover { color: #475569; border-color: #cbd5e1; }
+    .rl-ai-remove-btn {
+      font-size: 10px; font-weight: 600; color: #94a3b8;
+      background: none; border: none; cursor: pointer;
+      padding: 4px 6px; transition: color 0.15s;
+    }
+    .rl-ai-remove-btn:hover { color: #ef4444; }
 
     /* ── Input ── */
     input[type="text"] {
-      width: 100%; padding: 8px 10px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 7px;
-      color: #f0f0f4; font-size: 12px; font-family: monospace;
-      outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 10px 12px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      color: #1a1a2e; font-size: 13px;
+      font-family: 'SF Mono', 'Cascadia Code', monospace;
+      outline: none; transition: all 0.2s;
     }
-    input::placeholder { color: rgba(255,255,255,0.2); }
-    input:focus { border-color: rgba(255,107,53,0.7); background: rgba(255,255,255,0.08); }
+    input::placeholder { color: #cbd5e1; }
+    input:focus {
+      border-color: #6366f1;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
 
     /* ── Buttons ── */
-    .rl-btn-row { display: flex; gap: 7px; margin-top: 8px; }
+    .rl-btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .rl-btn-primary {
-      flex: 1; padding: 8px 0;
-      background: #FF6B35; color: #fff; border: none; border-radius: 7px;
-      font-size: 12px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+      flex: 1; padding: 10px 0;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; font-family: inherit;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.25);
     }
-    .rl-btn-primary:hover { background: #e8521e; }
-    .rl-btn-ghost {
-      padding: 8px 11px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 7px; color: rgba(255,255,255,0.4);
-      font-size: 14px; cursor: pointer; transition: all 0.15s; line-height: 1;
+    .rl-btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+      transform: translateY(-0.5px);
     }
-    .rl-btn-ghost:hover {
-      background: rgba(248,113,113,0.12);
-      color: #f87171; border-color: rgba(248,113,113,0.3);
+    .rl-btn-primary:active { transform: translateY(0); }
+
+    .rl-get-key-link {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      margin-top: 8px;
+      font-size: 11px; color: #6366f1; text-decoration: none;
+      font-weight: 600; transition: color 0.15s;
     }
+    .rl-get-key-link:hover { color: #4338ca; }
 
     /* ── Status message ── */
     #rl-status {
-      font-size: 11px; margin-top: 8px; min-height: 14px; line-height: 1.4;
-      color: rgba(255,255,255,0.35);
+      font-size: 11.5px; margin-top: 8px; min-height: 14px; line-height: 1.4;
+      color: #94a3b8;
     }
-    #rl-status.ok  { color: #4ade80; }
-    #rl-status.err { color: #f87171; }
-
-    /* ── Info rows (like ABP / Dark Reader) ── */
-    .rl-row {
-      display: flex; align-items: center; gap: 11px;
-      padding: 10px 15px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      cursor: default; transition: background 0.12s;
-      text-decoration: none; color: inherit;
-    }
-    .rl-row[href]:hover { background: rgba(255,255,255,0.04); cursor: pointer; }
-    .rl-row-icon  { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
-    .rl-row-body  { flex: 1; min-width: 0; }
-    .rl-row-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.75); line-height: 1.3; }
-    .rl-row-sub   { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 1px; }
-    .rl-row-arrow { font-size: 16px; color: rgba(255,255,255,0.18); flex-shrink: 0; }
+    #rl-status.ok  { color: #059669; }
+    #rl-status.err { color: #ef4444; }
 
     /* ── Footer ── */
     .rl-footer {
-      padding: 9px 15px;
-      font-size: 9.5px; color: rgba(255,255,255,0.18);
+      padding: 12px 16px;
+      font-size: 10px; color: #cbd5e1;
       text-align: center; letter-spacing: 0.3px;
     }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
   <!-- Header -->
   <div class="rl-header">
-    <div>
-      <div class="rl-brand">ReviewLens</div>
-      <div class="rl-sub">Product Truth Panel</div>
+    <div class="rl-brand-group">
+      <div class="rl-logo-mark">RL</div>
+      <div>
+        <div class="rl-brand">ReviewLens</div>
+        <div class="rl-sub">Amazon Review Trust Analyzer</div>
+      </div>
     </div>
-    <div id="rl-pill" class="rl-pill rl-pill-inactive">No Key</div>
+    <div id="rl-badge" class="rl-badge rl-badge-ready">Ready</div>
   </div>
 
-  <!-- Key status (visible only when key saved) -->
-  <div id="rl-key-status">
-    <div>
-      <div class="rl-key-label">API Key</div>
-      <div class="rl-key-val" id="rl-key-masked">—</div>
+  <!-- Status hero -->
+  <div class="rl-status-hero">
+    <div class="rl-status-row">
+      <div id="rl-status-dot" class="rl-status-dot rl-status-dot-green"></div>
+      <div id="rl-status-text" class="rl-status-text">Extension active</div>
     </div>
-    <span class="rl-key-check">&#x2713;</span>
+    <div id="rl-status-sub" class="rl-status-sub">Open any Amazon product page to see analysis</div>
   </div>
 
-  <!-- Key input section -->
-  <div class="rl-section">
-    <div class="rl-section-title">Gemini API Key</div>
-    <input type="text" id="gemini-key" placeholder="AIza..." spellcheck="false" autocomplete="off" />
-    <div class="rl-btn-row">
-      <button class="rl-btn-primary" id="save-btn">Save Key</button>
-      <button class="rl-btn-ghost"   id="clear-btn" title="Remove saved key">&#x2715;</button>
+  <!-- Feature checklist -->
+  <div class="rl-features">
+    <div class="rl-features-title">What you get</div>
+
+    <div class="rl-feat">
+      <div class="rl-feat-icon rl-feat-on">&#x2713;</div>
+      <span class="rl-feat-label">Trust score (0&ndash;100)</span>
+      <span class="rl-feat-tag rl-feat-tag-free">Free</span>
     </div>
-    <div id="rl-status"></div>
+
+    <div class="rl-feat">
+      <div class="rl-feat-icon rl-feat-on">&#x2713;</div>
+      <span class="rl-feat-label">Fake review detection</span>
+      <span class="rl-feat-tag rl-feat-tag-free">Free</span>
+    </div>
+
+    <div class="rl-feat">
+      <div class="rl-feat-icon rl-feat-on">&#x2713;</div>
+      <span class="rl-feat-label">Rating integrity check</span>
+      <span class="rl-feat-tag rl-feat-tag-free">Free</span>
+    </div>
+
+    <div class="rl-feat">
+      <div class="rl-feat-icon rl-feat-on">&#x2713;</div>
+      <span class="rl-feat-label">Sentiment breakdown</span>
+      <span class="rl-feat-tag rl-feat-tag-free">Free</span>
+    </div>
+
+    <div class="rl-feat" id="rl-feat-concerns">
+      <div class="rl-feat-icon rl-feat-off">&mdash;</div>
+      <span class="rl-feat-label rl-feat-label-dim">Concerns &amp; praises</span>
+      <span class="rl-feat-tag rl-feat-tag-ai">AI</span>
+    </div>
+
+    <div class="rl-feat" id="rl-feat-buy">
+      <div class="rl-feat-icon rl-feat-off">&mdash;</div>
+      <span class="rl-feat-label rl-feat-label-dim">Should you buy?</span>
+      <span class="rl-feat-tag rl-feat-tag-ai">AI</span>
+    </div>
   </div>
 
-  <!-- Get free key -->
-  <a class="rl-row" href="https://aistudio.google.com/app/apikey" target="_blank">
-    <span class="rl-row-icon">&#x1F511;</span>
-    <div class="rl-row-body">
-      <div class="rl-row-title">Get Free API Key</div>
-      <div class="rl-row-sub">aistudio.google.com &mdash; no credit card</div>
-    </div>
-    <span class="rl-row-arrow">&#x203A;</span>
-  </a>
-
-  <!-- How it works -->
-  <div class="rl-row">
-    <span class="rl-row-icon">&#x26A1;</span>
-    <div class="rl-row-body">
-      <div class="rl-row-title">Works automatically</div>
-      <div class="rl-row-sub">Injects on every Amazon product page</div>
-    </div>
-  </div>
-
-  <!-- Model info -->
-  <div class="rl-row">
-    <span class="rl-row-icon">&#x1F9E0;</span>
-    <div class="rl-row-body">
-      <div class="rl-row-title">Gemini 2.5 Flash</div>
-      <div class="rl-row-sub">Analyzes up to 400 reviews per product</div>
+  <!-- AI enhancement section (no key) -->
+  <div class="rl-enhance" id="rl-enhance-section">
+    <button class="rl-enhance-toggle" id="rl-enhance-toggle">
+      <div class="rl-enhance-icon">&#x2728;</div>
+      <div class="rl-enhance-body">
+        <div class="rl-enhance-title">Enhance with Gemini AI</div>
+        <div class="rl-enhance-sub">Free API key &mdash; unlocks full analysis</div>
+      </div>
+      <span class="rl-enhance-arrow" id="rl-enhance-arrow">&#x25BE;</span>
+    </button>
+    <div class="rl-enhance-panel" id="rl-enhance-panel">
+      <div class="rl-enhance-content">
+        <div class="rl-input-label">Gemini API Key</div>
+        <input type="text" id="gemini-key" placeholder="AIza..." spellcheck="false" autocomplete="off" />
+        <div class="rl-btn-row">
+          <button class="rl-btn-primary" id="save-btn">Activate AI</button>
+        </div>
+        <a class="rl-get-key-link" href="https://aistudio.google.com/app/apikey" target="_blank">
+          Get free key &rarr; aistudio.google.com
+        </a>
+        <div id="rl-status"></div>
+      </div>
     </div>
   </div>
 
-  <div class="rl-footer">ReviewLens v2.0 &bull; Gemini 2.5 Flash</div>
+  <!-- AI active section (has key) -->
+  <div class="rl-enhance hidden" id="rl-ai-active-section">
+    <div class="rl-ai-active">
+      <div class="rl-ai-active-dot"></div>
+      <div class="rl-ai-active-info">
+        <div class="rl-ai-active-title">Gemini AI active</div>
+        <div class="rl-ai-active-key" id="rl-key-masked">&mdash;</div>
+      </div>
+      <button class="rl-ai-change-btn" id="change-btn">Change</button>
+      <button class="rl-ai-remove-btn" id="clear-btn" title="Remove key">&#x2715;</button>
+    </div>
+  </div>
+
+  <div class="rl-footer">ReviewLens v2.0 &bull; Local + AI Analysis</div>
 
   <script src="popup.js"></script>
 </body>

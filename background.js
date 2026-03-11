@@ -1,5 +1,6 @@
 // ReviewLens — background.js (Manifest V3 service worker)
 // Handles Gemini API calls and page fetching. Runs in extension origin so CORS is not an issue.
+// Now receives local analysis context to produce better-informed Gemini responses.
 
 'use strict';
 
@@ -10,7 +11,7 @@ const GEMINI_BASE  = 'https://generativelanguage.googleapis.com/v1beta/models';
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message.action === 'analyzeWithGemini') {
-    callGeminiAPI(message.reviews, message.starRating, message.totalRatings, message.starDist)
+    callGeminiAPI(message.reviews, message.starRating, message.totalRatings, message.starDist, message.localSignals)
       .then(data  => sendResponse({ success: true,  data }))
       .catch(err  => sendResponse({ success: false, error: err.message }));
     return true; // keep message channel open for async sendResponse
@@ -26,13 +27,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 // ── Gemini API call ───────────────────────────────────────────────────────────
-async function callGeminiAPI(reviews, starRating, totalRatings, starDist) {
+async function callGeminiAPI(reviews, starRating, totalRatings, starDist, localSignals) {
   const stored = await chrome.storage.local.get('geminiKey');
   const key = stored.geminiKey;
 
   if (!key) throw new Error('NO_KEY');
 
-  const prompt = buildPrompt(reviews, starRating, totalRatings, starDist);
+  const prompt = buildPrompt(reviews, starRating, totalRatings, starDist, localSignals);
   const url = `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${key}`;
 
   const response = await fetch(url, {
@@ -49,7 +50,6 @@ async function callGeminiAPI(reviews, starRating, totalRatings, starDist) {
   });
 
   if (response.status === 429) {
-    // Use Retry-After header if provided, otherwise default to 60s
     const retryAfter = parseInt(response.headers.get('Retry-After')) || 60;
     throw new Error(`RATE_LIMIT:${retryAfter}`);
   }
@@ -88,7 +88,7 @@ async function callGeminiAPI(reviews, starRating, totalRatings, starDist) {
   parsed.neutral_pct  = neu;
   parsed.negative_pct = Math.max(0, 100 - pos - neu);
 
-  // Clamp sentiment_stars to valid range (Gemini computes this from balanced text sample)
+  // Clamp sentiment_stars to valid range
   if (parsed.sentiment_stars != null) {
     parsed.sentiment_stars = Math.max(1, Math.min(5, Math.round(parsed.sentiment_stars * 10) / 10));
   }
@@ -100,9 +100,7 @@ async function callGeminiAPI(reviews, starRating, totalRatings, starDist) {
 }
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
-function buildPrompt(reviews, starRating, totalRatings, starDist) {
-  // Gemini 2.5 Flash has a 1M token context — we can send generous review text.
-  // Cap per-review at 500 chars to balance depth vs total prompt size.
+function buildPrompt(reviews, starRating, totalRatings, starDist, localSignals) {
   const reviewBlock = reviews.map((r, i) =>
     `[${i + 1}] (${r.stars > 0 ? r.stars + '\u2605' : 'unrated'}) ${r.text.slice(0, 500)}`
   ).join('\n');
@@ -114,17 +112,24 @@ function buildPrompt(reviews, starRating, totalRatings, starDist) {
     ? `Total ratings on Amazon: ${totalRatings}`
     : '';
 
-  // Star distribution is the ground truth for sentiment — far more accurate
-  // than estimating from a small, potentially biased review sample.
   const distLine = starDist
     ? `Actual star distribution (ground truth from all ${totalRatings || '?'} ratings): ` +
       `5\u2605=${starDist['5'] || 0}%, 4\u2605=${starDist['4'] || 0}%, ` +
       `3\u2605=${starDist['3'] || 0}%, 2\u2605=${starDist['2'] || 0}%, 1\u2605=${starDist['1'] || 0}%`
     : '';
 
+  // Include local analysis context so Gemini can provide better-informed qualitative analysis
+  const localContext = localSignals
+    ? `\nLOCAL ANALYSIS (already computed deterministically — use as context, not as override):
+  Local trust score: ${localSignals.trustScore}/100
+  Detected signals: ${localSignals.signals && localSignals.signals.length > 0 ? localSignals.signals.join('; ') : 'none'}
+  Local text sentiment: ${localSignals.textSentiment || 'N/A'}\u2605
+  Sentiment gap: ${localSignals.sentimentGap || 0}\u2605`
+    : '';
+
   const distInstructions = starDist ? `
 SAMPLING NOTE: The reviews below are stratified — roughly equal reviews scraped from each star level
-(5★ filter, 4★ filter, 3★ filter, 2★ filter, 1★ filter) for balanced qualitative coverage.
+(5\u2605 filter, 4\u2605 filter, 3\u2605 filter, 2\u2605 filter, 1\u2605 filter) for balanced qualitative coverage.
 Do NOT treat sample proportions as the real sentiment split. Use these rules:
 
 SENTIMENT PERCENTAGES (positive_pct / neutral_pct / negative_pct):
@@ -143,6 +148,7 @@ TEXT SENTIMENT (sentiment_stars):
 ${ratingLine}
 ${totalLine}
 ${distLine}
+${localContext}
 Sample size for qualitative analysis: ${reviews.length} reviews
 
 Reviews:

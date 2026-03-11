@@ -6,10 +6,9 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Deprecated v1 files (kept locally, not needed in repo)
-sidebar.html
-sidebar.css
-sidebar.js
-
 # Local notes
 *.local.*
+
+# Environment / secrets
+*.env
+*.key
