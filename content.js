@@ -194,6 +194,11 @@
   // ── Set up compare button with product data ─────────────────────────────────
   function setupCompare(asin, data, localSignals) {
     var meta = Scraper.scrapeProductMeta();
+    var specs = Scraper.scrapeProductSpecs();
+
+    // Show specs in sidebar
+    UI.showSpecs(specs);
+
     UI.setupCompareButton({
       asin:           asin,
       name:           meta.name,
@@ -208,7 +213,8 @@
       praises:        data.top_praises || [],
       goodFor:        data.good_for || [],
       avoidIf:        data.avoid_if || [],
-      emotionalPulse: localSignals && localSignals.emotionalPulse || null
+      emotionalPulse: localSignals && localSignals.emotionalPulse || null,
+      specs:          specs
     }, Compare);
   }
 

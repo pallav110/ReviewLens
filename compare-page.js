@@ -96,6 +96,7 @@ function renderColumn(p, bestScore) {
       ${renderBar('Negative', p.emotionalPulse.negative, 'neg')}
     </div>` : '';
 
+  const specsHtml = renderSpecsSection(p.specs);
   const concernsHtml = renderListSection('Recurring Concerns', p.concerns, 'concerns');
   const praisesHtml  = renderListSection('What People Love', p.praises, 'praises');
   const goodForHtml  = renderListSection('Good For', p.goodFor, 'good-for');
@@ -128,6 +129,7 @@ function renderColumn(p, bestScore) {
         <div class="rl-cmp-verdict rl-cmp-verdict-${verdict}">${esc(verdict)}</div>
       </div>
 
+      ${specsHtml}
       ${pulseHtml}
       ${concernsHtml}
       ${praisesHtml}
@@ -150,6 +152,20 @@ function renderBar(label, value, type) {
       <div class="rl-cmp-bar-track">
         <div class="rl-cmp-bar rl-cmp-bar-${type}" style="width:0%" data-bar-width="${value || 0}%"></div>
       </div>
+    </div>`;
+}
+
+function renderSpecsSection(specs) {
+  if (!specs || Object.keys(specs).length === 0) return '';
+  const entries = Object.entries(specs);
+  const items = entries.map(([k, v]) =>
+    `<li><span class="rl-cmp-spec-key">${esc(k)}</span><span class="rl-cmp-spec-val">${esc(v)}</span></li>`
+  ).join('');
+
+  return `
+    <div class="rl-cmp-list-section">
+      <div class="rl-cmp-section-title">Specifications</div>
+      <ul class="rl-cmp-specs-list">${items}</ul>
     </div>`;
 }
 

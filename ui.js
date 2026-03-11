@@ -251,6 +251,31 @@ const SIDEBAR_CSS = `
   .rl-buy-list li:last-child { border-bottom: none; }
   .rl-buy-empty { font-size: 11px; color: #475569; font-style: italic; }
 
+  /* ── Product Specs ── */
+  #rl-specs-list { list-style: none; padding: 0; }
+  #rl-specs-list li {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 11px; line-height: 1.4; gap: 8px;
+  }
+  #rl-specs-list li:last-child { border-bottom: none; }
+  .rl-spec-key {
+    color: #64748b; font-weight: 600;
+    flex-shrink: 0; max-width: 40%;
+  }
+  .rl-spec-val {
+    color: #cbd5e1; text-align: right;
+    word-break: break-word;
+  }
+  .rl-specs-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    margin-top: 8px; padding: 5px 0;
+    font-size: 10px; font-weight: 600; color: #818cf8;
+    cursor: pointer; background: none; border: none;
+    font-family: inherit; transition: color 0.15s;
+  }
+  .rl-specs-toggle:hover { color: #a5b4fc; }
+
   /* ── AI Enhancement CTA ── */
   .rl-ai-cta {
     margin: 10px 10px 0;
@@ -454,6 +479,13 @@ const SIDEBAR_HTML = `
         <div class="rl-card" id="rl-praises-card">
           <div class="rl-card-title">What People Love</div>
           <ul id="rl-praises-list" class="rl-phrase-list rl-praises"></ul>
+        </div>
+
+        <!-- Product Specs -->
+        <div class="rl-card hidden" id="rl-specs-card">
+          <div class="rl-card-title">Product Specifications</div>
+          <ul id="rl-specs-list"></ul>
+          <button class="rl-specs-toggle hidden" id="rl-specs-toggle">Show more &#x25BE;</button>
         </div>
 
         <!-- Should You Buy? -->
@@ -883,6 +915,45 @@ window.RL.UI = {
   },
 
   // ── Set up compare button ───────────────────────────────────────────────────
+  // ── Show product specifications ─────────────────────────────────────────────
+  showSpecs(specs) {
+    const card    = sd('rl-specs-card');
+    const list    = sd('rl-specs-list');
+    const toggle  = sd('rl-specs-toggle');
+    if (!card || !list) return;
+
+    const entries = Object.entries(specs);
+    if (entries.length === 0) return;
+
+    card.classList.remove('hidden');
+
+    // Show first 6 specs, rest behind "show more"
+    const INITIAL = 6;
+    const renderItems = (items) =>
+      items.map(([k, v]) =>
+        `<li><span class="rl-spec-key">${esc(k)}</span><span class="rl-spec-val">${esc(v)}</span></li>`
+      ).join('');
+
+    if (entries.length <= INITIAL) {
+      list.innerHTML = renderItems(entries);
+    } else {
+      list.innerHTML = renderItems(entries.slice(0, INITIAL));
+      toggle.classList.remove('hidden');
+
+      let expanded = false;
+      toggle.addEventListener('click', () => {
+        expanded = !expanded;
+        if (expanded) {
+          list.innerHTML = renderItems(entries);
+          toggle.innerHTML = 'Show less &#x25B4;';
+        } else {
+          list.innerHTML = renderItems(entries.slice(0, INITIAL));
+          toggle.innerHTML = 'Show more &#x25BE;';
+        }
+      });
+    }
+  },
+
   async setupCompareButton(productData, CompareModule) {
     const btn       = sd('rl-compare-btn');
     const btnText   = sd('rl-compare-btn-text');

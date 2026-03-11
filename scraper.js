@@ -211,6 +211,80 @@ window.RL.Scraper = {
     return all;
   },
 
+  // ── Scrape product specifications from tech details tables ─────────────────
+  scrapeProductSpecs() {
+    const specs = {};
+
+    // Method 1: prodDetTable (most electronics, appliances)
+    const tables = document.querySelectorAll(
+      '#productDetails_techSpec_section_1 .prodDetTable, ' +
+      '#technicalSpecifications_section_1 .prodDetTable, ' +
+      '#productDetails_detailBullets_sections1 .prodDetTable, ' +
+      '.prodDetTable'
+    );
+    tables.forEach(table => {
+      table.querySelectorAll('tr').forEach(row => {
+        const th = row.querySelector('th');
+        const td = row.querySelector('td');
+        if (th && td) {
+          const key = th.textContent.trim().replace(/\s+/g, ' ');
+          const val = td.textContent.trim().replace(/\s+/g, ' ');
+          if (key && val && val !== '‎') specs[key] = val;
+        }
+      });
+    });
+
+    // Method 2: detailBullets list format (books, simpler listings)
+    if (Object.keys(specs).length === 0) {
+      const bullets = document.querySelectorAll('#detailBullets_feature_div .a-list-item');
+      bullets.forEach(li => {
+        const spans = li.querySelectorAll('span');
+        if (spans.length >= 2) {
+          const key = spans[0].textContent.trim().replace(/[\s:]+$/g, '').replace(/\s+/g, ' ');
+          const val = spans[1].textContent.trim().replace(/\s+/g, ' ');
+          if (key && val && val !== '‎' && !key.startsWith('Customer')) specs[key] = val;
+        }
+      });
+    }
+
+    // Method 3: #poExpander (some Amazon.in pages use this for specs)
+    if (Object.keys(specs).length === 0) {
+      document.querySelectorAll('#poExpander .a-spacing-small, #poExpander tr').forEach(row => {
+        const cols = row.querySelectorAll('td, span.a-text-bold, span.po-break-word');
+        if (cols.length >= 2) {
+          const key = cols[0].textContent.trim().replace(/\s+/g, ' ');
+          const val = cols[1].textContent.trim().replace(/\s+/g, ' ');
+          if (key && val) specs[key] = val;
+        }
+      });
+    }
+
+    // Method 4: Product overview / feature bullets (#productOverview_feature_div)
+    if (Object.keys(specs).length < 3) {
+      document.querySelectorAll('#productOverview_feature_div tr').forEach(row => {
+        const label = row.querySelector('td.a-span3, td:first-child');
+        const value = row.querySelector('td.a-span9, td:last-child');
+        if (label && value && label !== value) {
+          const key = label.textContent.trim().replace(/\s+/g, ' ');
+          const val = value.textContent.trim().replace(/\s+/g, ' ');
+          if (key && val && !specs[key]) specs[key] = val;
+        }
+      });
+    }
+
+    // Filter out noise keys
+    const noiseKeys = ['asin', 'date first available', 'best sellers rank', 'customer reviews', 'is discontinued'];
+    const filtered = {};
+    for (const [k, v] of Object.entries(specs)) {
+      const lower = k.toLowerCase();
+      if (!noiseKeys.some(n => lower.includes(n))) {
+        filtered[k] = v;
+      }
+    }
+
+    return filtered;
+  },
+
   // ── Scrape product metadata for comparison ──────────────────────────────────
   scrapeProductMeta() {
     let name = '';

@@ -39,6 +39,7 @@ window.RL.Compare = {
       goodFor:     (product.goodFor || []).slice(0, 5),
       avoidIf:     (product.avoidIf || []).slice(0, 5),
       emotionalPulse: product.emotionalPulse || null,
+      specs:       product.specs || {},
       savedAt:     Date.now()
     });
 
