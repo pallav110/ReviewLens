@@ -102,12 +102,14 @@
   // ── Handle Gemini errors — fall back to local when possible ──────────────────
   function handleGeminiError(response, asin, localSignals, allReviews, geminiReviews) {
     if (response.error === 'NO_KEY') {
-      showAndCacheLocal(asin, localSignals, allReviews.length);
+      // Don't cache — user may add a key later and revisit
+      showLocalWithoutCaching(asin, localSignals, allReviews.length);
       return;
     }
 
     if (response.error === 'INVALID_KEY') {
-      showAndCacheLocal(asin, localSignals, allReviews.length);
+      // Don't cache — user may fix their key and revisit
+      showLocalWithoutCaching(asin, localSignals, allReviews.length);
       return;
     }
 
@@ -154,6 +156,14 @@
   function showAndCacheLocal(asin, localSignals, reviewCount) {
     var localData = { trust_score: localSignals.trustScore, trust_flags: localSignals.signals.map(function (s) { return s.detail; }) };
     Cache.set(asin, { data: localData, reviewCount: reviewCount, localSignals: localSignals });
+    UI.showLocalOnlyResults(localSignals, reviewCount, Scraper);
+    UI.injectInlineShowcase(localData, localSignals);
+    setupCompare(asin, localData, localSignals);
+  }
+
+  // ── Show local-only without caching (key errors — user may fix key later) ────
+  function showLocalWithoutCaching(asin, localSignals, reviewCount) {
+    var localData = { trust_score: localSignals.trustScore, trust_flags: localSignals.signals.map(function (s) { return s.detail; }) };
     UI.showLocalOnlyResults(localSignals, reviewCount, Scraper);
     UI.injectInlineShowcase(localData, localSignals);
     setupCompare(asin, localData, localSignals);

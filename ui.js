@@ -427,7 +427,7 @@ const SIDEBAR_HTML = `
 
         <!-- Rating Integrity -->
         <div class="rl-card">
-          <div class="rl-card-title">Rating Integrity Check</div>
+          <div class="rl-card-title">Are The Ratings Real?</div>
           <div class="rl-rating-row">
             <div class="rl-star-box">
               <div class="rl-star-value"><span id="rl-official-stars">&mdash;</span><span class="rl-star-icon">&#9733;</span></div>
@@ -436,7 +436,7 @@ const SIDEBAR_HTML = `
             <div class="rl-rating-vs">vs</div>
             <div class="rl-star-box">
               <div class="rl-star-value"><span id="rl-sentiment-stars">&mdash;</span><span class="rl-star-icon">&#9733;</span></div>
-              <div class="rl-star-lbl">Text Sentiment</div>
+              <div class="rl-star-lbl">What Reviews Say</div>
             </div>
           </div>
           <div id="rl-rating-verdict-row">
@@ -604,7 +604,8 @@ const sd = id => _shadow && _shadow.getElementById(id);
 
 // ── Escape HTML ─────────────────────────────────────────────────────────────────
 function esc(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ── Trust score color/label ─────────────────────────────────────────────────────
@@ -791,12 +792,12 @@ window.RL.UI = {
     const gapNote  = textStar ? ` (text: ${textStar}\u2605 vs official: ${official}\u2605)` : '';
 
     const explanations = {
-      accurate:   `Review language aligns with the ${official}\u2605 official rating${gapNote}.`,
-      inflated:   `Review text implies lower quality than the ${official}\u2605 rating suggests${gapNote}.`,
-      deflated:   `Review text implies higher quality than the ${official}\u2605 rating reflects${gapNote}.`,
-      suspicious: `Significant gap between what buyers write and what they rate${gapNote} \u2014 see Trust Signals.`,
-      caution:    `Rating may be OK but text-quality gap and review patterns warrant caution${gapNote}.`,
-      unknown:    'Could not determine rating accuracy.'
+      accurate:   `The ${official}\u2605 rating looks genuine \u2014 what people write matches the stars they give${gapNote}.`,
+      inflated:   `People's actual complaints suggest this product is worse than the ${official}\u2605 rating shows${gapNote}.`,
+      deflated:   `People actually like this more than the ${official}\u2605 rating suggests \u2014 the reviews are more positive than the stars${gapNote}.`,
+      suspicious: `Big mismatch \u2014 people write negative things but give high stars${gapNote}. The rating may be manipulated.`,
+      caution:    `The rating might be OK, but some review patterns look off${gapNote}. Scroll down for details.`,
+      unknown:    'Not enough data to tell if the rating is trustworthy.'
     };
     sd('rl-verdict-explanation').textContent = explanations[verdict] || '';
 
@@ -910,7 +911,15 @@ window.RL.UI = {
     shadow.appendChild(card);
 
     card.querySelector('.rl-sc-btn').addEventListener('click', () => {
-      if (_host) _host.style.right = '12px';
+      if (!_host) return;
+      _host.style.right = '12px';
+      // Flash the sidebar to draw attention if already visible
+      _host.style.transition = 'none';
+      _host.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.5)';
+      requestAnimationFrame(() => {
+        _host.style.transition = 'box-shadow 0.6s ease, right 0.4s cubic-bezier(0.16,1,0.3,1)';
+        setTimeout(() => { _host.style.boxShadow = 'none'; }, 600);
+      });
     });
   },
 
@@ -960,17 +969,17 @@ window.RL.UI = {
     const countLine = sd('rl-compare-count');
     if (!btn) return;
 
-    btn.classList.remove('hidden');
-
     const Compare = CompareModule;
     if (!Compare) { btn.classList.add('hidden'); return; }
 
-    // Check if already saved
+    // Check if already saved BEFORE showing the button to avoid flash of wrong state
     const alreadySaved = await Compare.isSaved(productData.asin);
     if (alreadySaved) {
       btn.classList.add('rl-compare-saved');
       btnText.textContent = '\u2713 Saved to Compare';
     }
+
+    btn.classList.remove('hidden');
 
     // Show count
     const count = await Compare.count();

@@ -62,19 +62,19 @@ window.RL.LocalAnalysis = {
       ambiguousPenalty += 10;
       signals.push({
         type: 'sentiment-gap', severity: 'medium', penalty: 10,
-        detail: `Large gap between text sentiment (${mismatch.textSentiment.toFixed(1)}\u2605) and official rating (${officialRating}\u2605)`
+        detail: `Reviews sound like ${mismatch.textSentiment.toFixed(1)}\u2605 quality but the official rating is ${officialRating}\u2605 \u2014 big difference`
       });
     } else if (mismatch.gap > 1.0) {
       ambiguousPenalty += 7;
       signals.push({
         type: 'sentiment-gap', severity: 'low', penalty: 7,
-        detail: `Moderate gap between text sentiment (${mismatch.textSentiment.toFixed(1)}\u2605) and official rating (${officialRating}\u2605)`
+        detail: `Reviews sound like ${mismatch.textSentiment.toFixed(1)}\u2605 quality but the official rating is ${officialRating}\u2605`
       });
     } else if (mismatch.gap > 0.5) {
       ambiguousPenalty += 3;
       signals.push({
         type: 'sentiment-gap', severity: 'low', penalty: 3,
-        detail: `Mild gap between text sentiment (${mismatch.textSentiment.toFixed(1)}\u2605) and official rating (${officialRating}\u2605)`
+        detail: `Small mismatch: reviews suggest ${mismatch.textSentiment.toFixed(1)}\u2605 but official rating is ${officialRating}\u2605`
       });
     }
 
@@ -109,13 +109,13 @@ window.RL.LocalAnalysis = {
     if (five >= 50 && four < five * 0.2) {
       return {
         type: 'j-curve', severity: 'medium', penalty: 10,
-        detail: `J-shaped distribution: ${five}% five-star vs ${four}% four-star \u2014 organic products typically have more 4\u2605 reviews`
+        detail: `Unusual rating pattern: ${five}% gave 5 stars but only ${four}% gave 4 stars \u2014 real products usually have more 4-star reviews`
       };
     }
     if (five >= 40 && four < five * 0.25) {
       return {
         type: 'j-curve', severity: 'low', penalty: 5,
-        detail: `Mild J-curve: ${five}% five-star vs ${four}% four-star`
+        detail: `Slightly unusual pattern: ${five}% five-star vs only ${four}% four-star`
       };
     }
     return null;
@@ -173,14 +173,14 @@ window.RL.LocalAnalysis = {
     if (dupeCount >= 3) {
       return {
         type: 'duplicates', severity: 'high', penalty: 20, count: dupeCount,
-        detail: `${dupeCount} near-duplicate review pairs detected \u2014 possible copy-paste manipulation`,
+        detail: `${dupeCount} reviews look almost identical to each other \u2014 could be fake or copy-pasted`,
         examples: dupePairs
       };
     }
     if (dupeCount >= 1) {
       return {
         type: 'duplicates', severity: 'medium', penalty: 10, count: dupeCount,
-        detail: `${dupeCount} near-duplicate review pair${dupeCount > 1 ? 's' : ''} detected`,
+        detail: `${dupeCount} review${dupeCount > 1 ? 's look' : ' looks'} very similar to other reviews`,
         examples: dupePairs
       };
     }
@@ -208,7 +208,7 @@ window.RL.LocalAnalysis = {
       return {
         type: 'generic-reviews', severity: 'medium', penalty: 10,
         ratio: Math.round(ratio * 100),
-        detail: `${Math.round(ratio * 100)}% of high-rated reviews are generic with no product detail`
+        detail: `${Math.round(ratio * 100)}% of 5-star reviews are vague one-liners like "good product" with no real detail`
       };
     }
     return null;
@@ -232,7 +232,7 @@ window.RL.LocalAnalysis = {
     if (entropy < 0.8) {
       return {
         type: 'low-entropy', severity: 'medium', penalty: 7,
-        detail: `Rating distribution is extremely concentrated (entropy: ${entropy.toFixed(2)}) \u2014 may indicate artificial inflation`
+        detail: `Almost all ratings are the same star level \u2014 real products usually have a mix of ratings`
       };
     }
     return null;
@@ -268,14 +268,14 @@ window.RL.LocalAnalysis = {
     if (gatingCount >= 2) {
       return {
         type: 'review-gating', severity: 'high', penalty: 20, count: gatingCount,
-        detail: `${gatingCount} reviews contain review gating or incentivized language`,
+        detail: `${gatingCount} reviews mention getting the product for free or being asked to leave a review`,
         examples
       };
     }
     if (gatingCount === 1) {
       return {
         type: 'review-gating', severity: 'medium', penalty: 10, count: 1,
-        detail: '1 review contains possible review gating or incentivized language',
+        detail: '1 review mentions getting the product for free or being asked to leave a review',
         examples
       };
     }

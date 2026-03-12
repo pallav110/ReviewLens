@@ -123,12 +123,16 @@ window.RL.Scraper = {
     if (Object.keys(dist).length < 3) {
       document.querySelectorAll('[aria-label*="percent"], [aria-label*="star"]').forEach(el => {
         const txt = el.getAttribute('aria-label') || '';
-        const m = txt.match(/(\d+)\s*percent.*?(\d)\s*star/i)
-               || txt.match(/(\d)\s*star.*?(\d+)\s*percent/i);
-        if (m) {
-          const pct = parseInt(m[1] || m[2]);
-          const star = m[2] || m[1];
-          if (pct >= 0 && pct <= 100) dist[star] = pct;
+        // Pattern A: "61 percent of reviews have 5 stars"
+        const m1 = txt.match(/(\d+)\s*percent.*?(\d)\s*star/i);
+        // Pattern B: "5 star reviews represent 61 percent"
+        const m2 = txt.match(/(\d)\s*star.*?(\d+)\s*percent/i);
+        if (m1) {
+          const pct = parseInt(m1[1]);
+          if (pct >= 0 && pct <= 100) dist[m1[2]] = pct;
+        } else if (m2) {
+          const pct = parseInt(m2[2]);
+          if (pct >= 0 && pct <= 100) dist[m2[1]] = pct;
         }
       });
     }
@@ -187,27 +191,29 @@ window.RL.Scraper = {
     });
   },
 
-  // ── Stratified multi-star scrape (4 pages per star level = up to 200 reviews)
+  // ── Stratified multi-star scrape (4 pages per star level, throttled) ─────────
   async fetchMoreReviews(asin) {
     if (!asin) return [];
     const domain = window.location.hostname;
     const starFilters = ['five_star', 'four_star', 'three_star', 'two_star', 'one_star'];
 
-    // Fetch 4 pages per star level = 20 parallel requests
-    const requests = [];
+    // Build all URLs
+    const urls = [];
     for (const filter of starFilters) {
       for (let page = 1; page <= 4; page++) {
-        requests.push(
-          this._fetchReviewPage(
-            `https://${domain}/product-reviews/${asin}/?filterByStar=${filter}&pageNumber=${page}`
-          )
-        );
+        urls.push(`https://${domain}/product-reviews/${asin}/?filterByStar=${filter}&pageNumber=${page}`);
       }
     }
 
-    const pages = await Promise.all(requests);
+    // Fetch in batches of 5 with 300ms delay between batches to avoid bot detection
+    const BATCH = 5;
     const all = [];
-    pages.forEach(page => all.push(...page));
+    for (let i = 0; i < urls.length; i += BATCH) {
+      if (i > 0) await new Promise(r => setTimeout(r, 300));
+      const batch = urls.slice(i, i + BATCH);
+      const pages = await Promise.all(batch.map(url => this._fetchReviewPage(url)));
+      pages.forEach(page => all.push(...page));
+    }
     return all;
   },
 
@@ -272,14 +278,22 @@ window.RL.Scraper = {
       });
     }
 
-    // Filter out noise keys
-    const noiseKeys = ['asin', 'date first available', 'best sellers rank', 'customer reviews', 'is discontinued'];
+    // Filter out noise keys (regulatory info, contact details, legalese)
+    const noiseKeys = [
+      'asin', 'date first available', 'best sellers rank', 'customer reviews',
+      'is discontinued', 'manufacturer', 'importer', 'packer', 'warranty',
+      'contact information', 'registered office', 'item model number',
+      'item part number', 'country of origin', 'unit count',
+      'included components', 'box contents', 'whats in the box',
+      'what\'s in the box'
+    ];
     const filtered = {};
     for (const [k, v] of Object.entries(specs)) {
       const lower = k.toLowerCase();
-      if (!noiseKeys.some(n => lower.includes(n))) {
-        filtered[k] = v;
-      }
+      if (noiseKeys.some(n => lower.includes(n))) continue;
+      // Skip excessively long values (likely addresses or legal text)
+      if (v.length > 120) continue;
+      filtered[k] = v;
     }
 
     return filtered;
@@ -296,18 +310,30 @@ window.RL.Scraper = {
     if (imgEl) image = imgEl.src || imgEl.dataset.oldHires || '';
 
     let price = '';
-    const priceSelectors = [
-      '.a-price .a-offscreen',
-      '#priceblock_ourprice',
-      '#priceblock_dealprice',
-      'span.a-price-whole',
-      '[data-hook="deal-price"]',
+    // Target selling price, excluding MRP/strikethrough prices
+    // Amazon marks MRP with .a-text-price or data-a-strike="true"
+    const priceContainers = [
+      '#corePriceDisplay_desktop_feature_div',
+      '#apex_desktop_newAccordionRow',
+      '#apex_desktop',
+      '#corePrice_desktop',
     ];
-    for (const sel of priceSelectors) {
-      const el = document.querySelector(sel);
-      if (el && el.textContent.trim()) {
-        price = el.textContent.trim();
+    for (const container of priceContainers) {
+      const wrap = document.querySelector(container);
+      if (!wrap) continue;
+      // Find selling price: .a-price that is NOT strikethrough
+      const priceEl = wrap.querySelector('.a-price:not(.a-text-price):not([data-a-strike="true"]) .a-offscreen');
+      if (priceEl && priceEl.textContent.trim()) {
+        price = priceEl.textContent.trim();
         break;
+      }
+    }
+    // Fallbacks for older Amazon layouts
+    if (!price) {
+      const fallbacks = ['#priceblock_dealprice', '#priceblock_ourprice', '#price_inside_buybox'];
+      for (const sel of fallbacks) {
+        const el = document.querySelector(sel);
+        if (el && el.textContent.trim()) { price = el.textContent.trim(); break; }
       }
     }
 
@@ -317,11 +343,15 @@ window.RL.Scraper = {
   // ── Deduplicate and merge reviews ──────────────────────────────────────────
   mergeReviews(pageReviews, extraReviews, maxCount) {
     maxCount = maxCount || 80;
-    const seen = new Set(pageReviews.map(r => r.text.slice(0, 80)));
-    const merged = [
-      ...pageReviews,
-      ...extraReviews.filter(r => !seen.has(r.text.slice(0, 80)))
-    ];
+    const seen = new Set();
+    const merged = [];
+    // Deduplicate ALL reviews (page + extra) using first 80 chars as fingerprint
+    for (const r of [...pageReviews, ...extraReviews]) {
+      const key = r.text.slice(0, 80);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(r);
+    }
     return merged.slice(0, maxCount);
   },
 };
