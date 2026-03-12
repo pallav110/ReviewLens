@@ -275,6 +275,10 @@ const SIDEBAR_CSS = `
     font-family: inherit; transition: color 0.15s;
   }
   .rl-specs-toggle:hover { color: #a5b4fc; }
+  .rl-spec-empty {
+    color: #6b7280; font-style: italic; font-size: 11px;
+    padding: 10px 0; text-align: center;
+  }
 
   /* ── AI Enhancement CTA ── */
   .rl-ai-cta {
@@ -755,7 +759,13 @@ window.RL.UI = {
     requestAnimationFrame(() => { trustBarEl.style.width = `${trustScore}%`; });
 
     const confidence = data.confidence || (reviewCount >= 50 ? 'high' : reviewCount >= 25 ? 'medium' : 'low');
-    sd('rl-sample-note').textContent     = `${reviewCount} review${reviewCount !== 1 ? 's' : ''} analyzed`;
+    const total = scraper.totalRatings || 0;
+    if (total > 0 && reviewCount < total) {
+      const pct = Math.round(reviewCount / total * 100);
+      sd('rl-sample-note').textContent = `${reviewCount} of ${total.toLocaleString()} reviews analyzed (${pct}%)`;
+    } else {
+      sd('rl-sample-note').textContent = `${reviewCount} review${reviewCount !== 1 ? 's' : ''} analyzed`;
+    }
     sd('rl-confidence-badge').textContent = `${confidence.charAt(0).toUpperCase() + confidence.slice(1)} confidence`;
 
     // Source badge
@@ -810,7 +820,7 @@ window.RL.UI = {
 
     // Emotional Pulse
     sd('rl-review-count').textContent = scraper.starDist
-      ? `From star distribution \u2014 ${scraper.totalRatings ? scraper.totalRatings.toLocaleString() + ' total ratings' : 'all ratings'}`
+      ? `Based on all ${scraper.totalRatings ? scraper.totalRatings.toLocaleString() : ''} ratings`
       : `Estimated from ${reviewCount} sampled reviews`;
     sd('rl-pos-pct').textContent = `${pulse.positive}%`;
     sd('rl-neu-pct').textContent = `${pulse.neutral}%`;
@@ -932,9 +942,13 @@ window.RL.UI = {
     if (!card || !list) return;
 
     const entries = Object.entries(specs);
-    if (entries.length === 0) return;
-
     card.classList.remove('hidden');
+
+    if (entries.length === 0) {
+      list.innerHTML = '<li class="rl-spec-empty">Specs not available for this product</li>';
+      if (toggle) toggle.classList.add('hidden');
+      return;
+    }
 
     // Show first 6 specs, rest behind "show more"
     const INITIAL = 6;

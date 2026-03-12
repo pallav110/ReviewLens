@@ -31,6 +31,18 @@ function verdictClass(v) {
   return `rl-cmp-verdict-${(v || 'unknown').toLowerCase()}`;
 }
 
+function timeAgo(timestamp) {
+  const diff = Date.now() - timestamp;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
 // ── Spec normalization ───────────────────────────────────────────────────────
 const NOISE_KEYS = [
   'asin', 'date first available', 'best sellers rank', 'customer reviews',
@@ -222,6 +234,7 @@ function renderTable(products) {
       ${isBest ? '<div class="rl-cmp-best-badge">Best Pick</div>' : ''}
       ${p.image ? `<img class="rl-cmp-img" src="${esc(p.image)}" alt="">` : '<div class="rl-cmp-img-placeholder">&#x1F4E6;</div>'}
       <div class="rl-cmp-name">${p.url ? `<a href="${esc(p.url)}" target="_blank">${esc(p.name)}</a>` : esc(p.name)}</div>
+      ${p.savedAt ? `<div class="rl-cmp-saved-at">Saved ${timeAgo(p.savedAt)}</div>` : ''}
       <button class="rl-cmp-remove-sm" data-asin="${esc(p.asin)}" title="Remove">&times;</button>
     </th>`;
   }
@@ -229,7 +242,8 @@ function renderTable(products) {
 
   // ── Price row ──
   html += tableRow('Price', products.map(p => p.price
-    ? `<span class="rl-cmp-price">${esc(p.price)}</span>` : '—'));
+    ? `<span class="rl-cmp-price">${esc(p.price)}</span>`
+    : '<span class="rl-cmp-no-data">Price unavailable</span>'));
 
   // ── Trust score row ──
   html += tableRow('Trust Score', products.map(p => {
