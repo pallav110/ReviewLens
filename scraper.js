@@ -40,7 +40,7 @@ window.RL.Scraper = {
         '[data-hook="review-star-rating"] .a-icon-alt, ' +
         '[data-hook="review-star-rating-container"] .a-icon-alt'
       );
-      const stars = starEl ? parseFloat(starEl.textContent) || 0 : 0;
+      const stars = starEl ? parseFloat(starEl.textContent.replace(',', '.')) || 0 : 0;
       reviews.push({ text, stars, wordCount: text.split(/\s+/).filter(Boolean).length });
     });
 
@@ -73,7 +73,8 @@ window.RL.Scraper = {
       if (el) {
         // Use textContent — .a-icon-alt elements are visually hidden via CSS clip,
         // and innerText skips clipped/hidden content in some browsers.
-        const val = parseFloat(el.textContent);
+        // Replace comma decimal separator for non-US locales (e.g., Amazon.de "4,3 von 5")
+        const val = parseFloat(el.textContent.replace(',', '.'));
         if (val > 0 && val <= 5) { this._starRating = val; break; }
       }
     }
@@ -174,7 +175,7 @@ window.RL.Scraper = {
         const text = bodyEl.textContent.trim().replace(/\n+/g, ' ');
         if (text.length < 15) return;
         const starEl = node.querySelector('[data-hook="review-star-rating"] .a-icon-alt');
-        const stars = starEl ? parseFloat(starEl.textContent) || 0 : 0;
+        const stars = starEl ? parseFloat(starEl.textContent.replace(',', '.')) || 0 : 0;
         reviews.push({ text, stars, wordCount: text.split(/\s+/).filter(Boolean).length });
       });
       return reviews;

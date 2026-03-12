@@ -149,6 +149,7 @@
       Cache.set(asin, { data: mergedData, reviewCount: allReviews.length, localSignals: localSignals });
       UI.showResults(mergedData, allReviews.length, localSignals, Scraper);
       UI.injectInlineShowcase(mergedData, localSignals);
+      setupCompare(asin, mergedData, localSignals);
     });
   }
 
@@ -217,7 +218,7 @@
       url:            meta.url,
       rating:         Scraper.starRating,
       totalRatings:   Scraper.totalRatings,
-      trustScore:     data.trust_score || (localSignals && localSignals.trustScore) || 0,
+      trustScore:     data.trust_score != null ? data.trust_score : (localSignals && localSignals.trustScore != null ? localSignals.trustScore : 0),
       verdict:        data.rating_verdict || (localSignals && localSignals.ratingVerdict) || 'unknown',
       concerns:       data.top_concerns || [],
       praises:        data.top_praises || [],

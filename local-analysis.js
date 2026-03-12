@@ -329,7 +329,13 @@ window.RL.LocalAnalysis = {
       ? Math.round(Math.abs(officialRating - textSentiment) * 10) / 10
       : 0;
 
-    return { textSentiment, gap };
+    // direction: positive = text sounds better than official (deflated rating),
+    //            negative = text sounds worse than official (inflated rating)
+    const direction = officialRating
+      ? Math.round((textSentiment - officialRating) * 10) / 10
+      : 0;
+
+    return { textSentiment, gap, direction };
   },
 
   // ── Emotional pulse from star distribution (ground truth) ────────────────────
@@ -354,7 +360,7 @@ window.RL.LocalAnalysis = {
     const hasJCurve = signals.some(s => s.type === 'j-curve');
 
     if ((hasDupes || hasGating) && mismatch.gap > 0.5) return 'suspicious';
-    if (mismatch.gap > 0.5 || hasJCurve) return 'inflated';
+    if (mismatch.gap > 0.5 || hasJCurve) return mismatch.direction >= 0 ? 'deflated' : 'inflated';
     if (mismatch.gap > 0.3 && signals.length > 0) return 'caution';
     if (mismatch.gap <= 0.3 && signals.filter(s => s.severity !== 'low').length === 0) return 'accurate';
     return 'caution';

@@ -820,7 +820,7 @@ window.RL.UI = {
 
     // Emotional Pulse
     sd('rl-review-count').textContent = scraper.starDist
-      ? `Based on all ${scraper.totalRatings ? scraper.totalRatings.toLocaleString() : ''} ratings`
+      ? `Based on all${scraper.totalRatings ? ' ' + scraper.totalRatings.toLocaleString() : ''} ratings`
       : `Estimated from ${reviewCount} sampled reviews`;
     sd('rl-pos-pct').textContent = `${pulse.positive}%`;
     sd('rl-neu-pct').textContent = `${pulse.neutral}%`;
@@ -959,19 +959,25 @@ window.RL.UI = {
 
     if (entries.length <= INITIAL) {
       list.innerHTML = renderItems(entries);
+      if (toggle) toggle.classList.add('hidden');
     } else {
       list.innerHTML = renderItems(entries.slice(0, INITIAL));
       toggle.classList.remove('hidden');
+      toggle.innerHTML = 'Show more &#x25BE;';
+
+      // Replace node to clear any prior listeners
+      const fresh = toggle.cloneNode(true);
+      toggle.parentNode.replaceChild(fresh, toggle);
 
       let expanded = false;
-      toggle.addEventListener('click', () => {
+      fresh.addEventListener('click', () => {
         expanded = !expanded;
         if (expanded) {
           list.innerHTML = renderItems(entries);
-          toggle.innerHTML = 'Show less &#x25B4;';
+          fresh.innerHTML = 'Show less &#x25B4;';
         } else {
           list.innerHTML = renderItems(entries.slice(0, INITIAL));
-          toggle.innerHTML = 'Show more &#x25BE;';
+          fresh.innerHTML = 'Show more &#x25BE;';
         }
       });
     }

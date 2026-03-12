@@ -369,12 +369,13 @@ function renderTable(products) {
   const toggleBtn = document.getElementById('rl-spec-toggle');
   if (toggleBtn) {
     const hiddenRows = container.querySelectorAll('.rl-cmp-spec-hidden');
+    const hiddenSpecCount = container.querySelectorAll('.rl-cmp-row-spec.rl-cmp-spec-hidden').length;
     toggleBtn.addEventListener('click', () => {
       const isExpanded = toggleBtn.dataset.expanded === '1';
       hiddenRows.forEach(row => row.classList.toggle('rl-cmp-spec-shown'));
       toggleBtn.dataset.expanded = isExpanded ? '0' : '1';
       toggleBtn.innerHTML = isExpanded
-        ? `Show ${hiddenRows.length} more specs &#x25BE;`
+        ? `Show ${hiddenSpecCount} more specs &#x25BE;`
         : `Show less &#x25B4;`;
     });
   }

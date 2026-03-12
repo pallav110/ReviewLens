@@ -18,7 +18,7 @@ window.RL.Cache = {
     const entry = data[key];
     if (!entry) return null;
     if (Date.now() - entry.ts > this.TTL) {
-      chrome.storage.local.remove(key);
+      await chrome.storage.local.remove(key);
       return null;
     }
     return entry.result;
@@ -30,7 +30,8 @@ window.RL.Cache = {
     await chrome.storage.local.set({
       [key]: { result, ts: Date.now() }
     });
-    this._cleanup();
+    // Await cleanup to prevent concurrent cleanups racing on rapid set() calls
+    await this._cleanup();
   },
 
   async _cleanup() {
@@ -47,7 +48,7 @@ window.RL.Cache = {
       }
     });
     if (toRemove.length > 0) {
-      chrome.storage.local.remove(toRemove);
+      await chrome.storage.local.remove(toRemove);
     }
   },
 
@@ -55,7 +56,7 @@ window.RL.Cache = {
     const all = await chrome.storage.local.get(null);
     const cacheKeys = Object.keys(all).filter(k => k.startsWith(this.PREFIX));
     if (cacheKeys.length > 0) {
-      chrome.storage.local.remove(cacheKeys);
+      await chrome.storage.local.remove(cacheKeys);
     }
   }
 };

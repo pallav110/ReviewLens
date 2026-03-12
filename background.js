@@ -82,8 +82,12 @@ async function callGeminiAPI(reviews, starRating, totalRatings, starDist, localS
   } catch (_) {
     // Strip markdown fences if model wraps in ```json ... ```
     const match = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (match) parsed = JSON.parse(match[1]);
-    else throw new Error('Gemini returned invalid JSON.');
+    if (match) {
+      try { parsed = JSON.parse(match[1]); }
+      catch (_e) { throw new Error('Gemini returned invalid JSON (even after stripping markdown fences).'); }
+    } else {
+      throw new Error('Gemini returned invalid JSON.');
+    }
   }
 
   // Safety: ensure percentages sum to 100
